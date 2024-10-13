@@ -10,7 +10,7 @@ local creeper_face = {
 }
 
 if minetest.get_modpath("mcl_core") or minetest.get_modpath("vlf_core") then
-	register_firework_entity("fireworks_reimagined:creeper_firework_entity", {
+	fireworks_reimagined.register_firework_entity("fireworks_reimagined:creeper_firework_entity", {
 		firework_shape = "test",
 		time_remaining = 3,
 		firework_explosion = function(pos, shape)
