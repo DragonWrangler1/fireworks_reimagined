@@ -9,7 +9,7 @@ local color_grid = {
 	{"#000000", "#625300", "#c3a400", "#d0af00", "#463b00", "#000000", "#0f0d00", "#b09400", "#c4a500", "#b09400", "#0f0d00", "#000000", "#000000", "#625300", "#c3a400", "#d0af00", "#463b00", "#000000", "#453a00", "#debb00", "#c0a200", "#c0a200", "#846f00"},
 	}
 
-register_firework_entity("fireworks_reimagined:2025_firework_entity", {
+fireworks_reimagined.register_firework_entity("fireworks_reimagined:2025_firework_entity", {
 	firework_shape = "2025",
 	firework_explosion = function(pos, shape)
 		fireworks_reimagined.register_firework_explosion(pos, 0.5, color_grid, 2)
