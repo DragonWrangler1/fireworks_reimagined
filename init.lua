@@ -61,7 +61,7 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 		local particle_properties = {
 			pos = pos,
 			velocity = velocity,
-			acceleration = {x = 0, y = 0, z = 0},  -- No movement initially
+			acceleration = {x = 0, y = 0, z = 0},
 			expirationtime = 2.5,
 			size = size,
 			texture = colored_texture,
@@ -231,12 +231,8 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 			minetest.add_particle(particle_properties)
 		end)
 	end
-
-	-- Variables for scaling and size
 	local pixel_scale = 0.5 / 2
 	local size_multiplier = 1.5
-
-	-- Create fireworks based on the color grid and depth layers
 	for z = 0, depth_layers do
 		for y = 1, #color_grid do
 			for x = 1, #color_grid[y] do
@@ -393,8 +389,6 @@ minetest.register_craftitem("fireworks_reimagined:firework_item", {
 	on_use = function(itemstack, user, pointed_thing)
 		local player_name = user:get_player_name()
 		local current_time = minetest.get_gametime()
-		
-		-- Initialize user usage data if not set
 		if not user_usage[player_name] then
 			user_usage[player_name] = {
 				uses = 0,
@@ -403,14 +397,10 @@ minetest.register_craftitem("fireworks_reimagined:firework_item", {
 		end
 
 		local usage_data = user_usage[player_name]
-
-		-- Check if the cooldown period has passed, and reset usage if it has
 		if current_time - usage_data.last_used >= cooldown_time then
 			usage_data.uses = 0
 			usage_data.last_used = current_time
 		end
-
-		-- Allow usage if it's below the limit
 		if usage_data.uses < usage_limit then
 			local pos = user:get_pos()
 			pos.y = pos.y + 1.5
@@ -424,17 +414,10 @@ minetest.register_craftitem("fireworks_reimagined:firework_item", {
 		end
 	end,
 })
-
--- Clean up usage data when player leaves the game
 minetest.register_on_leaveplayer(function(player)
 	local player_name = player:get_player_name()
 	user_usage[player_name] = nil
 end)
-
-
---===========--
---=== API ===--
---===========--
 
 local registered_fireworks = {}
 function fireworks_reimagined.register_firework_entity(name, def)
@@ -456,7 +439,6 @@ function fireworks_reimagined.register_firework_entity(name, def)
 			self.object:set_velocity({x = 0, y = 20, z = 0})
 			self.time_remaining = self.time_remaining - dtime
 			if self.time_remaining <= 0 then
-				-- Use custom or default explosion function
 				local explosion_fn = def.firework_explosion
 				explosion_fn(pos, self.firework_shape)
 				self.object:remove()
