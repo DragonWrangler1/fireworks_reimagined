@@ -3,18 +3,18 @@ This is the guide to the FIREWORKS REIMAGINED api
 This guide is here to help you registering your new fireworks.
 
 ### FIREWORK SHAPES
-* register_firework_shape(shape_name, description) 
+* fireworks_reimagined.register_firework_shape(shape_name, description) 
 ```
 register_firework_shape: allows you to add a new shape name to the list. By doing this. You can define a function for your mod, that acts depending on the shape name.
 ```
 
 #### EXAMPLE USAGE
-* **register_firework_shape** can be used for an item in your mod that randomly shoots Different fireworks based on shape for example. _square_ shoots square(ish) fireworks. While _sphere_ shoots spherical fireworks. When registering an item to do that, you can call both the default function: **spawn_firework_explosion** and your **custom_function** and depending on the results of the picked shape. You will get different fireworks.
+* **fireworks_reimagined.register_firework_shape** can be used for an item in your mod that randomly shoots Different fireworks based on shape for example. _square_ shoots square(ish) fireworks. While _sphere_ shoots spherical fireworks. When registering an item to do that, you can call both the default function: **fireworks_reimagined.spawn_firework_explosion** and your **custom_function** and depending on the results of the picked shape. You will get different fireworks.
 
 
 
 ### FIREWORK NORMAL EXPLOSIONS
-* spawn_firework_explosion(pos, shape, double, color_def, color_def_2, alpha)
+* fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color_def, color_def_2, alpha)
 ```
 spawn_firework_explosion: allows you to spawn various different types of firework explosions based on shape. double. color_def. And color_def_2.
 ```
@@ -28,12 +28,12 @@ If this is not defined. Then a random color will be picked.
 
 
 
-* **spawn_firework_explosion** is used to spawn normal firework explosions. This can result in some impressive firework displays.
+* **fireworks_reimagined.spawn_firework_explosion** is used to spawn normal firework explosions. This can result in some impressive firework displays.
 
 
 
 ### FIREWORK IMAGE EXPLOSIONS
-* register_firework_explosion(pos, delay, color_grid, depth_layers)
+* fireworks_reimagined.register_firework_explosion(pos, delay, color_grid, depth_layers)
 ```
 register_firework_explosion: allows you to take an image, and turn it into a lua table, which will then be displayed as fireworks when exploding.
 ```
@@ -61,7 +61,7 @@ see file **2025.lua** or **creeper.lua**
 
 
 ### FIREWORK BLOCKS
-* register_firework_node(shape, entity, delay)
+* fireworks_reimagined.register_firework_node(shape, entity, delay)
 ```
 register_firework_node: allows you to register blocks that shoot off fireworks after being right-clicked or activated with mesecons. They have a three second cooldown for player usage and two second for mesecon usage. To avoid player abuse.
 ```
@@ -76,7 +76,7 @@ see any of the lua files.
 
 
 ### FIREWORK ENTITY
-* register_firework_entity(name, def)
+* fireworks_reimagined.register_firework_entity(name, def)
 ```
 register_firework_entity: allows you to register custom firework entities to be shot off by firework_nodes that will have custom effects.
 ```
@@ -84,9 +84,9 @@ register_firework_entity: allows you to register custom firework entities to be 
 ```
 Here's how they would be defined:
 ```
-**register_firework_entity("fireworks_reimagined:test_3_firework_entity", {**
+**fireworks_reimagined.register_firework_entity("fireworks_reimagined:test_3_firework_entity", {**
    **firework_shape = "chaotic",**
    **firework_explosion = function(pos, shape)**
-       **spawn_firework_explosion(pos, "chaotic", false, "#FF0000", nil, "255")**
+       **fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", nil, "255")**
    **end**
 **})**

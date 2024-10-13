@@ -14,8 +14,8 @@ if minetest.get_modpath("mcl_core") or minetest.get_modpath("vlf_core") then
 		firework_shape = "test",
 		time_remaining = 3,
 		firework_explosion = function(pos, shape)
-			register_firework_explosion(pos, 0.2, creeper_face, 3)
+			fireworks_reimagined.register_firework_explosion(pos, 0.2, creeper_face, 3)
 		end
 	})
-	register_firework_node("creeper", "fireworks_reimagined:creeper_firework_entity", 0)
+	fireworks_reimagined.register_firework_node("creeper", "fireworks_reimagined:creeper_firework_entity", 0)
 end

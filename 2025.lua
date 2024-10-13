@@ -12,9 +12,9 @@ local color_grid = {
 register_firework_entity("fireworks_reimagined:2025_firework_entity", {
 	firework_shape = "2025",
 	firework_explosion = function(pos, shape)
-		register_firework_explosion(pos, 0.5, color_grid, 2)
+		fireworks_reimagined.register_firework_explosion(pos, 0.5, color_grid, 2)
 	end
 })
 
-register_firework_node("2025", "fireworks_reimagined:2025_firework_entity", 0)
-register_firework_node("2025", "fireworks_reimagined:2025_firework_entity", 10)
+fireworks_reimagined.register_firework_node("2025", "fireworks_reimagined:2025_firework_entity", 0)
+fireworks_reimagined.register_firework_node("2025", "fireworks_reimagined:2025_firework_entity", 10)
