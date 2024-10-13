@@ -437,7 +437,7 @@ end)
 --===========--
 
 local registered_fireworks = {}
-function register_firework_entity(name, def)
+function fireworks_reimagined.register_firework_entity(name, def)
 	local entity_def = {
 		initial_properties = {
 			physical = false,
@@ -472,7 +472,7 @@ function register_firework_entity(name, def)
 	registered_fireworks[name] = entity_def
 end
 
-register_firework_entity("fireworks_reimagined:test_firework_entity", {
+fireworks_reimagined.register_firework_entity("fireworks_reimagined:test_firework_entity", {
 	firework_shape = "test",
 	time_remaining = 3,
 	firework_explosion = function(pos, shape)
@@ -480,23 +480,23 @@ register_firework_entity("fireworks_reimagined:test_firework_entity", {
 	end
 })
 
-register_firework_entity("fireworks_reimagined:test_firework_entity_2", {
+fireworks_reimagined.register_firework_entity("fireworks_reimagined:test_firework_entity_2", {
 	firework_shape = "test_2",
 	firework_explosion = function(pos, shape)
 		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFFFF", "#FF0000", "255")
 	end
 })
 
-register_firework_entity("fireworks_reimagined:test_3_firework_entity", {
+fireworks_reimagined.register_firework_entity("fireworks_reimagined:test_3_firework_entity", {
 	firework_shape = "chaotic",
 	firework_explosion = function(pos, shape)
 		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", nil, "255")
 	end
 })
 
-register_firework_node("test", "fireworks_reimagined:test_firework_entity", 0)
-register_firework_node("test_2", "fireworks_reimagined:test_firework_entity_2", 0)
-register_firework_node("test_3", "fireworks_reimagined:test_3_firework_entity", 0)
+fireworks_reimagined.register_firework_node("test", "fireworks_reimagined:test_firework_entity", 0)
+fireworks_reimagined.register_firework_node("test_2", "fireworks_reimagined:test_firework_entity_2", 0)
+fireworks_reimagined.register_firework_node("test_3", "fireworks_reimagined:test_3_firework_entity", 0)
 
 local rules = mesecon.rules.pplate
 
