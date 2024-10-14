@@ -61,7 +61,7 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 		local particle_properties = {
 			pos = pos,
 			velocity = velocity,
-			acceleration = {x = 0, y = 0, z = 0},
+			acceleration = {x = 0, y = 0, z = 0},  -- No movement initially
 			expirationtime = 2.5,
 			size = size,
 			texture = colored_texture,
@@ -231,8 +231,12 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 			minetest.add_particle(particle_properties)
 		end)
 	end
+
+	-- Variables for scaling and size
 	local pixel_scale = 0.5 / 2
 	local size_multiplier = 1.5
+
+	-- Create fireworks based on the color grid and depth layers
 	for z = 0, depth_layers do
 		for y = 1, #color_grid do
 			for x = 1, #color_grid[y] do
@@ -257,7 +261,7 @@ minetest.register_entity("fireworks_reimagined:firework_entity", {
 		physical = false,
 		collide_with_objects = false,
 		visual = "sprite",
-		textures = {"fireworks_white.png"},
+		textures = {"fireworks_rocket_white.png"},
 		velocity = 0.5,
 		glow = 5,
 	},
@@ -291,13 +295,13 @@ end
 local last_rightclick_time = {}
 local last_mesecons_time = {}
 
-function fireworks_reimagined.register_firework_node(shape, entity, delay)
+function fireworks_reimagined.register_firework_node(tiles, shape, entity, delay)
 	minetest.register_node(":fireworks_reimagined:firework_" .. shape .. "_" .. delay, {
 		description = "Firework (" .. shape .. ") Delay: ( " .. delay .. " )",
-		tiles = { "fireworks_" .. shape .. ".png" },
+		tiles = { tiles or "fireworks_" .. shape .. ".png" },
 		groups = { cracky = 1, oddly_breakable_by_hand = 1 },
 		paramtype = "light",
-		light_source = 10,
+		light_source = 5,
 		on_rightclick = function(pos, node, clicker)
 			local pos_hash = minetest.hash_node_position(pos)
 			local current_time = minetest.get_gametime()
@@ -323,7 +327,7 @@ function fireworks_reimagined.register_firework_node(shape, entity, delay)
 			action_on = function(pos, node)
 				local pos_hash = minetest.hash_node_position(pos)
 				local current_time = minetest.get_gametime()
-				if not last_mesecons_time[pos_hash] or current_time - last_mesecons_time[pos_hash] >= 2 then
+				if not last_mesecons_time[pos_hash] or current_time - last_mesecons_time[pos_hash] >= 4 then
 					last_mesecons_time[pos_hash] = current_time
 					local firework_entity = minetest.add_entity(pos, entity or "fireworks_reimagined:firework_entity")
 					if firework_entity then
@@ -341,35 +345,35 @@ function fireworks_reimagined.register_firework_node(shape, entity, delay)
 end
 
 local register_firework_node = fireworks_reimagined.register_firework_node
-register_firework_node("sphere", nil, 0)
-register_firework_node("star", nil, 0)
-register_firework_node("ring", nil, 0)
-register_firework_node("burst", nil, 0)
-register_firework_node("cube", nil, 0)
-register_firework_node("spiral", nil, 0)
-register_firework_node("chaotic", nil, 0)
-register_firework_node("flame", nil, 0)
-register_firework_node("snowflake", nil, 0)
-register_firework_node("christmas_tree", nil, 0)
-register_firework_node("present", nil, 0)
+register_firework_node(nil, "sphere", nil, 0)
+register_firework_node(nil, "star", nil, 0)
+register_firework_node(nil, "ring", nil, 0)
+register_firework_node(nil, "burst", nil, 0)
+register_firework_node(nil, "cube", nil, 0)
+register_firework_node(nil, "spiral", nil, 0)
+register_firework_node(nil, "chaotic", nil, 0)
+register_firework_node(nil, "flame", nil, 0)
+register_firework_node(nil, "snowflake", nil, 0)
+register_firework_node(nil, "christmas_tree", nil, 0)
+register_firework_node(nil, "present", nil, 0)
 if minetest.get_modpath("mcl_core") or minetest.get_modpath("vlf_core") then
-	register_firework_node("creeper", nil, 0)
+	register_firework_node(nil, "creeper", nil, 0)
 end
 
 if minetest.settings:get_bool("long_delay", true) then
-	register_firework_node("sphere", nil, 10)
-	register_firework_node("star", nil, 10)
-	register_firework_node("ring", nil, 10)
-	register_firework_node("burst", nil, 10)
-	register_firework_node("cube", nil, 10)
-	register_firework_node("spiral", nil, 10)
-	register_firework_node("chaotic", nil, 10)
-	register_firework_node("flame", nil, 10)
-	register_firework_node("snowflake", nil, 10)
-	register_firework_node("christmas_tree", nil, 10)
-	register_firework_node("present", nil, 10)
+	register_firework_node(nil, "sphere", nil, 10)
+	register_firework_node(nil, "star", nil, 10)
+	register_firework_node(nil, "ring", nil, 10)
+	register_firework_node(nil, "burst", nil, 10)
+	register_firework_node(nil, "cube", nil, 10)
+	register_firework_node(nil, "spiral", nil, 10)
+	register_firework_node(nil, "chaotic", nil, 10)
+	register_firework_node(nil, "flame", nil, 10)
+	register_firework_node(nil, "snowflake", nil, 10)
+	register_firework_node(nil, "christmas_tree", nil, 10)
+	register_firework_node(nil, "present", nil, 10)
 	if minetest.get_modpath("mcl_core") or minetest.get_modpath("vlf_core") then
-		register_firework_node("creeper", nil, 10)
+		register_firework_node(nil, "creeper", nil, 10)
 	end
 end
 
@@ -389,6 +393,8 @@ minetest.register_craftitem("fireworks_reimagined:firework_item", {
 	on_use = function(itemstack, user, pointed_thing)
 		local player_name = user:get_player_name()
 		local current_time = minetest.get_gametime()
+		
+		-- Initialize user usage data if not set
 		if not user_usage[player_name] then
 			user_usage[player_name] = {
 				uses = 0,
@@ -397,10 +403,14 @@ minetest.register_craftitem("fireworks_reimagined:firework_item", {
 		end
 
 		local usage_data = user_usage[player_name]
+
+		-- Check if the cooldown period has passed, and reset usage if it has
 		if current_time - usage_data.last_used >= cooldown_time then
 			usage_data.uses = 0
 			usage_data.last_used = current_time
 		end
+
+		-- Allow usage if it's below the limit
 		if usage_data.uses < usage_limit then
 			local pos = user:get_pos()
 			pos.y = pos.y + 1.5
@@ -414,10 +424,17 @@ minetest.register_craftitem("fireworks_reimagined:firework_item", {
 		end
 	end,
 })
+
+-- Clean up usage data when player leaves the game
 minetest.register_on_leaveplayer(function(player)
 	local player_name = player:get_player_name()
 	user_usage[player_name] = nil
 end)
+
+
+--===========--
+--=== API ===--
+--===========--
 
 local registered_fireworks = {}
 function fireworks_reimagined.register_firework_entity(name, def)
@@ -426,21 +443,32 @@ function fireworks_reimagined.register_firework_entity(name, def)
 			physical = false,
 			collide_with_objects = false,
 			visual = "sprite",
-			textures = {"fireworks_white.png"},
+			textures = {"fireworks_rocket_white.png"},
 			velocity = 0.5,
 			glow = 5,
 		},
 		firework_shape = def.firework_shape or "sphere",
 		time_remaining = def.time_remaining or 2,
+		spiral = def.spiral or false,
+		spiral_angle = def.spiral_angle or 100,
+		spiral_radius = def.spiral_radius or 80,
 		on_step = function(self, dtime)
 			local pos = self.object:get_pos()
 			if not pos then return end
 			pos.y = pos.y + (self.initial_properties.velocity * dtime)
-			self.object:set_velocity({x = 0, y = 20, z = 0})
+			if self.spiral then
+				self.spiral_angle = self.spiral_angle + (math.pi / 8)
+				local offset_x = math.cos(self.spiral_angle) * self.spiral_radius
+				local offset_z = math.sin(self.spiral_angle) * self.spiral_radius
+				self.object:set_velocity({x = offset_x, y = 18, z = offset_z})
+				self.spiral_radius = self.spiral_radius + (0.01 * dtime)
+			else
+				self.object:set_velocity({x = 0, y = 20, z = 0})
+			end
 			self.time_remaining = self.time_remaining - dtime
 			if self.time_remaining <= 0 then
 				local explosion_fn = def.firework_explosion
-				explosion_fn(pos, self.firework_shape)
+				explosion_fn(pos)
 				self.object:remove()
 				minetest.sound_play("fireworks_explosion", {
 					pos = pos,
@@ -455,7 +483,6 @@ function fireworks_reimagined.register_firework_entity(name, def)
 end
 
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:test_firework_entity", {
-	firework_shape = "test",
 	time_remaining = 3,
 	firework_explosion = function(pos, shape)
 		minetest.chat_send_all("Custom explosion at " .. minetest.pos_to_string(pos) .. " with shape " .. shape)
@@ -463,25 +490,25 @@ fireworks_reimagined.register_firework_entity("fireworks_reimagined:test_firewor
 })
 
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:test_firework_entity_2", {
-	firework_shape = "test_2",
 	firework_explosion = function(pos, shape)
 		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFFFF", "#FF0000", "255")
 	end
 })
 
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:test_3_firework_entity", {
-	firework_shape = "chaotic",
+	spiral = true,
 	firework_explosion = function(pos, shape)
 		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", nil, "255")
 	end
 })
 
-fireworks_reimagined.register_firework_node("test", "fireworks_reimagined:test_firework_entity", 0)
-fireworks_reimagined.register_firework_node("test_2", "fireworks_reimagined:test_firework_entity_2", 0)
-fireworks_reimagined.register_firework_node("test_3", "fireworks_reimagined:test_3_firework_entity", 0)
+fireworks_reimagined.register_firework_node(nil, "test", "fireworks_reimagined:test_firework_entity", 0)
+fireworks_reimagined.register_firework_node(nil, "test_2", "fireworks_reimagined:test_firework_entity_2", 0)
+fireworks_reimagined.register_firework_node(nil, "test_3", "fireworks_reimagined:test_3_firework_entity", 0)
 
 local rules = mesecon.rules.pplate
 
 dofile(modpath.."/creeper.lua")
 dofile(modpath.."/crafting.lua")
+dofile(modpath.."/colored.lua")
 dofile(modpath.."/2025.lua")
