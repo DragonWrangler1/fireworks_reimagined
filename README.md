@@ -61,11 +61,12 @@ see file **2025.lua** or **creeper.lua**
 
 
 ### FIREWORK BLOCKS
-* fireworks_reimagined.register_firework_node(shape, entity, delay)
+* fireworks_reimagined.register_firework_node(tiles, shape, entity, delay)
 ```
 register_firework_node: allows you to register blocks that shoot off fireworks after being right-clicked or activated with mesecons. They have a three second cooldown for player usage and two second for mesecon usage. To avoid player abuse.
 ```
 
+* **tiles** must be either nil or a texture name. This will determine the tile used for the fireworks.
 * **shape** anything from a defined list(determines the naming and description, but also in some occasions the shape of the firework spawned.)
 * **entity** this is the name of the firework entity to spawn (more on this later) if **nil** then the default will spawn.
 * **delay** this is the delay at which the firework will be shot off at. This is here so that if the shooter is a normal player shooting off an image, they have a chance at seeing the firework.
@@ -85,8 +86,22 @@ register_firework_entity: allows you to register custom firework entities to be 
 Here's how they would be defined:
 ```
 **fireworks_reimagined.register_firework_entity("fireworks_reimagined:test_3_firework_entity", {**
-   **firework_shape = "chaotic",**
+   **spiral = true,**
    **firework_explosion = function(pos, shape)**
        **fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", nil, "255")**
    **end**
 **})**
+
+To properly register fireworks. You have many options. An easy example is the default usage used mostly in this mod. The example given above.
+
+That example shows you the 3rd test entity for fireworks.
+
+In that you have firework shape, spiral, and explosion function. 
+
+* **spiral** controls whether or not it spirals around after being launched (if you don't define it, then it will be straight up)
+* **firework_explosion** is the key function that controls what happens when that firework explodes.
+
+Along with spiral you have sub defs too.
+
+* **spiral_angle** is the angle at which it moves. Defaults to 150 when spiral is true.
+* **spiral_radius** is the radius width of the movement (think of a 1/10 ratio). Defaults to 80 when spiral is true
