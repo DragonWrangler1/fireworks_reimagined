@@ -13,6 +13,7 @@ local firework_shapes = {
 	{shape = "snowflake", description = "Snowflake"},
 	{shape = "present", description = "Present"},
 	{shape = "christmas_tree", description = "Christmas Tree"},
+	{shape = "hour_glass", description = "Hour Glass"},
 }
 
 function fireworks_reimagined.register_firework_shape(shape_name, description)
@@ -167,6 +168,16 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 			local z = math.sin(theta) * radius
 			spawn_colored_particle({x = x, y = y, z = z})
 		end
+	elseif shape == "hour_glass" then
+		local num_turns = 10
+		for i = 1, 360 * num_turns, 15 do
+			local theta = math.rad(i)
+			local y = (i / 360) * num_turns
+			local radius = 10 - (y / 2) -- Vary radius over time
+			local x = math.cos(theta) * radius
+			local z = math.sin(theta) * radius
+			spawn_colored_particle({x = x, y = y, z = z})
+		end
 	elseif shape == "chaotic" then
 		local num_particles = 150
 		for i = 1, num_particles do
@@ -254,7 +265,6 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 		end
 	end
 end
-
 
 minetest.register_entity("fireworks_reimagined:firework_entity", {
 	initial_properties = {
@@ -356,6 +366,7 @@ register_firework_node(nil, "flame", nil, 0)
 register_firework_node(nil, "snowflake", nil, 0)
 register_firework_node(nil, "christmas_tree", nil, 0)
 register_firework_node(nil, "present", nil, 0)
+register_firework_node(nil, "hour_glass", nil, 0)
 if minetest.get_modpath("mcl_core") or minetest.get_modpath("vlf_core") then
 	register_firework_node(nil, "creeper", nil, 0)
 end
@@ -372,6 +383,7 @@ if minetest.settings:get_bool("long_delay", true) then
 	register_firework_node(nil, "snowflake", nil, 10)
 	register_firework_node(nil, "christmas_tree", nil, 10)
 	register_firework_node(nil, "present", nil, 10)
+	register_firework_node(nil, "hour_glass", nil, 10)
 	if minetest.get_modpath("mcl_core") or minetest.get_modpath("vlf_core") then
 		register_firework_node(nil, "creeper", nil, 10)
 	end
@@ -506,7 +518,9 @@ fireworks_reimagined.register_firework_node(nil, "test", "fireworks_reimagined:t
 fireworks_reimagined.register_firework_node(nil, "test_2", "fireworks_reimagined:test_firework_entity_2", 0)
 fireworks_reimagined.register_firework_node(nil, "test_3", "fireworks_reimagined:test_3_firework_entity", 0)
 
-local rules = mesecon.rules.pplate
+if minetest.get_modpath("mesecons") then
+	local rules = mesecon.rules.pplate
+end
 
 dofile(modpath.."/creeper.lua")
 dofile(modpath.."/crafting.lua")
