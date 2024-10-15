@@ -138,3 +138,44 @@ fireworks_reimagined.register_firework_entity("fireworks_reimagined:blue_white_s
 })
 
 fireworks_reimagined.register_firework_node("fireworks_blue_white.png", "blue_white_spiral", "fireworks_reimagined:blue_white_spiral_firework_entity", 0)
+
+-- FIREWORKS MOD COMPAT
+
+-- RED
+fireworks_reimagined.register_firework_entity("fireworks_reimagined:red_firework_entity", {
+	firework_explosion = function(pos, shape)
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", nil, "255")
+	end
+})
+
+fireworks_reimagined.register_firework_node(nil, "red", "fireworks_reimagined:red_firework_entity", 0)
+-- ORANGE
+fireworks_reimagined.register_firework_entity("fireworks_reimagined:orange_firework_entity", {
+	firework_explosion = function(pos, shape)
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#da8424", nil, "255")
+	end
+})
+
+fireworks_reimagined.register_firework_node(nil, "orange", "fireworks_reimagined:orange_firework_entity", 0)
+-- GREEN
+fireworks_reimagined.register_firework_entity("fireworks_reimagined:green_firework_entity", {
+	firework_explosion = function(pos, shape)
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#329644", nil, "255")
+	end
+})
+
+fireworks_reimagined.register_firework_node(nil, "green", "fireworks_reimagined:green_firework_entity", 0)
+-- VIOLET
+fireworks_reimagined.register_firework_entity("fireworks_reimagined:violet_firework_entity", {
+	firework_explosion = function(pos, shape)
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#783190", nil, "255")
+	end
+})
+
+fireworks_reimagined.register_firework_node(nil, "violet", "fireworks_reimagined:violet_firework_entity", 0)
+
+minetest.register_alias("fireworks:red", "fireworks_reimagined:firework_red_0")
+minetest.register_alias("fireworks:orange", "fireworks_reimagined:firework_orange_0")
+minetest.register_alias("fireworks:green", "fireworks_reimagined:firework_green_0")
+minetest.register_alias("fireworks:violet", "fireworks_reimagined:firework_violet_0")
+
