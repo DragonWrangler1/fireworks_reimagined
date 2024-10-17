@@ -232,7 +232,7 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 			collisiondetection = false,
 			vertical = false,
 			size = 1.5,
-			texture = "^[colorize:" .. color,
+			texture = "black.png^[colorize:" .. color,
 			glow = 10,
 		}
 		minetest.add_particle(particle_properties)

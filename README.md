@@ -1,4 +1,4 @@
-This is the guide to the FIREWORKS REIMAGINED api
+This is the guide to the FIREWORKS REIMAGINED api.
 
 This guide is here to help you registering your new fireworks.
 
@@ -9,14 +9,14 @@ register_firework_shape: allows you to add a new shape name to the list. By doin
 ```
 
 #### EXAMPLE USAGE
-* **fireworks_reimagined.register_firework_shape** can be used for an item in your mod that randomly shoots Different fireworks based on shape for example. _square_ shoots square(ish) fireworks. While _sphere_ shoots spherical fireworks. When registering an item to do that, you can call both the default function: **fireworks_reimagined.spawn_firework_explosion** and your **custom_function** and depending on the results of the picked shape. You will get different fireworks.
+* **fireworks_reimagined.register_firework_shape** can be used for an item in your mod that randomly shoots Different fireworks based on shape for example. _square_ shoots square(ish) fireworks. While _sphere_ shoots spherical fireworks. When registering an item to do that, you can call both the default function: **fireworks_reimagined.spawn_firework_explosion** and your **custom_function** and depending on the results of the specified shape. You will get different fireworks.
 
 
 
 ### FIREWORK NORMAL EXPLOSIONS
 * fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color_def, color_def_2, alpha)
 ```
-spawn_firework_explosion: allows you to spawn various different types of firework explosions based on shape. double. color_def. And color_def_2.
+spawn_firework_explosion: allows you to spawn various different types of firework explosions based on shape. double. color_def. color_def_2. And alpha.
 ```
 
 * **shape** controls the shape of the firework that occurs.
@@ -40,7 +40,7 @@ register_firework_explosion: allows you to take an image, and turn it into a lua
 
 * **delay** This is the delay at which the "image" starts to fall apart. For example the full creeper image is visible for 0.2 seconds. Then it starts falling apart.
 Any value greater than 1 is discouraged as the entire explosion is only visible for up to 2.5 seconds.
-* **color_grid** This is the lua table that makes the image it is reversed from the actual image. So when getting the colors you will need either need to do one of the following:
+* **color_grid** This is the lua table that makes the image it is reversed from the actual image. So when getting the colors you will need to do one of the following:
 #1
 Manually get each color out of the image from gimp.
 #2
@@ -82,9 +82,8 @@ see any of the lua files.
 register_firework_entity: allows you to register custom firework entities to be shot off by firework_nodes that will have custom effects.
 ```
 
-```
 Here's how they would be defined:
-```
+
 **fireworks_reimagined.register_firework_entity("fireworks_reimagined:test_3_firework_entity", {**
    **spiral = true,**
    **firework_explosion = function(pos, shape)**
@@ -104,4 +103,4 @@ In that you have firework shape, spiral, and explosion function.
 Along with spiral you have sub defs too.
 
 * **spiral_angle** is the angle at which it moves. Defaults to 150 when spiral is true.
-* **spiral_radius** is the radius width of the movement (think of a 1/10 ratio). Defaults to 80 when spiral is true
+* **spiral_radius** is the radius width of the movement (think of a 1/10 ratio). Defaults to 80 when spiral is true.
