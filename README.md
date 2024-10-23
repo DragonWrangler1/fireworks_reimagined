@@ -44,7 +44,7 @@ Any value greater than 1 is discouraged as the entire explosion is only visible 
 #1
 Manually get each color out of the image from gimp.
 #2
-Run _image.py_ giving it the image name and output file. This will almost completely automate the process, and you shouldn't need to swap the Y vector of the image.
+Run _image_table.py_ giving it the image name and output file. This will almost completely automate the process, and you shouldn't need to swap the Y vector of the image.
 You merely have to open the output file. Copy the subtables, and insert them into your main lua table.
 
 with **color_grid** You can make just about any image into fireworks as long as it's small enough (I recommend not getting bigger than 32x32, the bigger the image, the less precise the fireworks are.) and as long as you have the image.
@@ -104,3 +104,6 @@ Along with spiral you have sub defs too.
 
 * **spiral_angle** is the angle at which it moves. Defaults to 150 when spiral is true.
 * **spiral_radius** is the radius width of the movement (think of a 1/10 ratio). Defaults to 80 when spiral is true.
+
+### TABLE TO IMAGE PYTHON CONVERTER
+* running table_image.py will allow you to convert a lua table with colors into an image. This will allow you to delete the image and then run the python script if you ever need to re-make it.
