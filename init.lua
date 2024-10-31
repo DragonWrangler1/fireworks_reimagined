@@ -75,6 +75,8 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 			size = size,
 			texture = colored_texture,
 			glow = glow,
+			collisiondetection = true,
+			collision_removal = true,
 		}
 		minetest.add_particle(particle_properties)
 		minetest.after(0.3, function()
@@ -91,6 +93,8 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 				size = size,
 				texture = colored_texture,
 				glow = glow,
+				collisiondetection = true,
+				collision_removal = true,
 			}
 			minetest.add_particle(breaking_particle_properties)
 			if double == true then
@@ -252,7 +256,8 @@ function fireworks_reimagined.register_limited_firework_explosion(pos, delay, co
 			velocity = {x=0, y=0, z=0},
 			acceleration = {x = 0, y = 0, z = 0},
 			expirationtime = delay,
-			collisiondetection = false,
+			collisiondetection = true,
+			collision_removal = true,
 			vertical = false,
 			size = 1.5,
 			texture = colored_texture,
@@ -313,7 +318,8 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 			velocity = {x=0, y=0, z=0},
 			acceleration = {x = 0, y = 0, z = 0},
 			expirationtime = delay,
-			collisiondetection = false,
+			collisiondetection = true,
+			collision_removal = true,
 			vertical = false,
 			size = 1.5,
 			texture = colored_texture,
@@ -353,7 +359,7 @@ end
 
 minetest.register_entity("fireworks_reimagined:firework_entity", {
 	initial_properties = {
-		physical = false,
+		physical = true,
 		collide_with_objects = false,
 		visual = "sprite",
 		textures = {"fireworks_rocket_white.png"},
@@ -537,7 +543,7 @@ local registered_fireworks = {}
 function fireworks_reimagined.register_firework_entity(name, def)
 	local entity_def = {
 		initial_properties = {
-			physical = false,
+			physical = true,
 			collide_with_objects = false,
 			visual = "sprite",
 			textures = {"fireworks_rocket_white.png"},
