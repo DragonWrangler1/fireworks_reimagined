@@ -1,7 +1,7 @@
 -- RED
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:red_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", nil, "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", nil, "255", nil, nil)
 	end
 })
 
@@ -9,7 +9,7 @@ fireworks_reimagined.register_firework_node(nil, "red", "fireworks_reimagined:re
 -- YELLOW
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:yellow_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFF00", nil, "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFF00", nil, "255", nil, nil)
 	end
 })
 
@@ -17,7 +17,7 @@ fireworks_reimagined.register_firework_node(nil, "yellow", "fireworks_reimagined
 -- BLUE
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:blue_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#0404B4", nil, "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#0404B4", nil, "255", nil, nil)
 	end
 })
 
@@ -25,7 +25,7 @@ fireworks_reimagined.register_firework_node(nil, "blue", "fireworks_reimagined:b
 -- WHITE
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:white_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFFFF", nil, "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFFFF", nil, "255", nil, nil)
 	end
 })
 
@@ -40,7 +40,7 @@ minetest.register_alias("fireworks_redo:spawner_white", "fireworks_reimagined:fi
 -- RED WHITE
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:red_white_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", "#FFFFFF", "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", "#FFFFFF", "255", nil, nil)
 	end
 })
 
@@ -48,7 +48,7 @@ fireworks_reimagined.register_firework_node(nil, "red_white", "fireworks_reimagi
 -- YELLOW WHITE
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:yellow_white_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFF00", "#FFFFFF", "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFF00", "#FFFFFF", "255", nil, nil)
 	end
 })
 
@@ -56,7 +56,7 @@ fireworks_reimagined.register_firework_node(nil, "yellow_white", "fireworks_reim
 -- BLUE WHITE
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:blue_white_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#0404B4", "#FFFFFF", "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#0404B4", "#FFFFFF", "255", nil, nil)
 	end
 })
 
@@ -72,7 +72,7 @@ fireworks_reimagined.register_firework_node(nil, "blue_white", "fireworks_reimag
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:red_spiral_firework_entity", {
 	spiral = true,
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", nil, "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", nil, "255", nil, nil)
 	end
 })
 
@@ -81,7 +81,7 @@ fireworks_reimagined.register_firework_node("fireworks_red.png", "red_spiral", "
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:yellow_spiral_firework_entity", {
 	spiral = true,
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFF00", nil, "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFF00", nil, "255", nil, nil)
 	end
 })
 
@@ -90,7 +90,7 @@ fireworks_reimagined.register_firework_node("fireworks_yellow.png", "yellow_spir
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:blue_spiral_firework_entity", {
 	spiral = true,
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#0404B4", nil, "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#0404B4", nil, "255", nil, nil)
 	end
 })
 
@@ -99,7 +99,7 @@ fireworks_reimagined.register_firework_node("fireworks_blue.png", "blue_spiral",
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:white_spiral_firework_entity", {
 	spiral = true,
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFFFF", nil, "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFFFF", nil, "255", nil, nil)
 	end
 })
 
@@ -115,7 +115,7 @@ minetest.register_alias("fireworks_redo:spawner_white_spiral", "fireworks_reimag
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:red_white_spiral_firework_entity", {
 	spiral = true,
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", "#FFFFFF", "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", "#FFFFFF", "255", nil, nil)
 	end
 })
 
@@ -124,7 +124,7 @@ fireworks_reimagined.register_firework_node("fireworks_red_white.png", "red_whit
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:yellow_white_spiral_firework_entity", {
 	spiral = true,
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFF00", "#FFFFFF", "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFF00", "#FFFFFF", "255", nil, nil)
 	end
 })
 
@@ -133,7 +133,7 @@ fireworks_reimagined.register_firework_node("fireworks_yellow_white.png", "yello
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:blue_white_spiral_firework_entity", {
 	spiral = true,
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#0404B4", "#FFFFFF", "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#0404B4", "#FFFFFF", "255", nil, nil)
 	end
 })
 
@@ -144,7 +144,7 @@ fireworks_reimagined.register_firework_node("fireworks_blue_white.png", "blue_wh
 -- RED
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:red_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", nil, "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", nil, "255", nil, nil)
 	end
 })
 
@@ -152,7 +152,7 @@ fireworks_reimagined.register_firework_node(nil, "red", "fireworks_reimagined:re
 -- ORANGE
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:orange_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#da8424", nil, "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#da8424", nil, "255", nil, nil)
 	end
 })
 
@@ -160,7 +160,7 @@ fireworks_reimagined.register_firework_node(nil, "orange", "fireworks_reimagined
 -- GREEN
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:green_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#329644", nil, "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#329644", nil, "255", nil, nil)
 	end
 })
 
@@ -168,14 +168,12 @@ fireworks_reimagined.register_firework_node(nil, "green", "fireworks_reimagined:
 -- VIOLET
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:violet_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#783190", nil, "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#783190", nil, "255", nil, nil)
 	end
 })
-
 fireworks_reimagined.register_firework_node(nil, "violet", "fireworks_reimagined:violet_firework_entity", 0)
 
 minetest.register_alias("fireworks:red", "fireworks_reimagined:firework_red_0")
 minetest.register_alias("fireworks:orange", "fireworks_reimagined:firework_orange_0")
 minetest.register_alias("fireworks:green", "fireworks_reimagined:firework_green_0")
 minetest.register_alias("fireworks:violet", "fireworks_reimagined:firework_violet_0")
-

@@ -14,7 +14,7 @@ register_firework_shape: allows you to add a new shape name to the list. By doin
 
 
 ### FIREWORK NORMAL EXPLOSIONS
-* fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color_def, color_def_2, alpha)
+* fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color_def, color_def_2, alpha, texture, psize)
 ```
 spawn_firework_explosion: allows you to spawn various different types of firework explosions based on shape. double. color_def. color_def_2. And alpha.
 ```
@@ -25,6 +25,8 @@ spawn_firework_explosion: allows you to spawn various different types of firewor
 If this is not defined. Then a random color will be picked.
 * **color_def_2** depends on **color_def** if color_def is not defined then it will pick a random color.
 * **alpha** if defined then it will set the alpha to the specified value. Otherwise it defaults to 128.
+* **texture** if defined will set the texture of each particle in the explosion to the specified ones.
+* **psize** defines the size of the particles if not defined returns to default.
 
 
 
@@ -33,7 +35,7 @@ If this is not defined. Then a random color will be picked.
 
 
 ### FIREWORK IMAGE EXPLOSIONS
-* fireworks_reimagined.register_firework_explosion(pos, delay, color_grid, depth_layers)
+* fireworks_reimagined.register_firework_explosion(pos, delay, color_grid, depth_layers, texture)
 ```
 register_firework_explosion: allows you to take an image, and turn it into a lua table, which will then be displayed as fireworks when exploding.
 ```
@@ -51,9 +53,16 @@ with **color_grid** You can make just about any image into fireworks as long as 
 
 * **depth_layers** This value can be as large as you want as long as it's within reason. This will allow you to create a more 3d image through the fireworks.
 
+* **texture** defines the texture of the particles used.
+
 ```
 When viewing these. If not symetrical. You must look North ingame (+Z) otherwise it'll be reverse.
 ```
+
+### FIREWORK IMAGE EXPLOSIONS (LITE)
+* fireworks_reimagined.register_limited_firework_explosion(pos, delay, color_grid, depth_layers, texture)
+
+Same as the above, except if the image is greater than 32px in any direction then that function will fallback to this one. Which should allow for up to 64px images.
 
 #### EXAMPLE USAGE
 see file **2025.lua** or **creeper.lua**
@@ -105,5 +114,7 @@ Along with spiral you have sub defs too.
 * **spiral_angle** is the angle at which it moves. Defaults to 150 when spiral is true.
 * **spiral_radius** is the radius width of the movement (think of a 1/10 ratio). Defaults to 80 when spiral is true.
 
-### TABLE TO IMAGE PYTHON CONVERTER
+
+
+### TABLE TO IMAGE CONVERTER
 * running table_image.py will allow you to convert a lua table with colors into an image. This will allow you to delete the image and then run the python script if you ever need to re-make it.
