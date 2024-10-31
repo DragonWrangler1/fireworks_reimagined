@@ -15,5 +15,5 @@ fireworks_reimagined.register_firework_entity("fireworks_reimagined:2025_firewor
 	end
 })
 
-fireworks_reimagined.register_firework_node(nil, "2025", "fireworks_reimagined:2025_firework_entity", 0)
-fireworks_reimagined.register_firework_node(nil, "2025", "fireworks_reimagined:2025_firework_entity", 10)
+fireworks_reimagined.register_firework_node(nil, "2025", "fireworks_reimagined:2025_firework_entity", 0, nil, nil)
+fireworks_reimagined.register_firework_node(nil, "2025", "fireworks_reimagined:2025_firework_entity", 10, nil, nil)

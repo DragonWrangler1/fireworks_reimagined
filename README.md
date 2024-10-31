@@ -70,7 +70,7 @@ see file **2025.lua** or **creeper.lua**
 
 
 ### FIREWORK BLOCKS
-* fireworks_reimagined.register_firework_node(tiles, shape, entity, delay)
+* fireworks_reimagined.register_firework_node(tiles, shape, entity, delay, cooldown, mese_cooldown)
 ```
 register_firework_node: allows you to register blocks that shoot off fireworks after being right-clicked or activated with mesecons. They have a three second cooldown for player usage and two second for mesecon usage. To avoid player abuse.
 ```
@@ -79,6 +79,8 @@ register_firework_node: allows you to register blocks that shoot off fireworks a
 * **shape** anything from a defined list(determines the naming and description, but also in some occasions the shape of the firework spawned.)
 * **entity** this is the name of the firework entity to spawn (more on this later) if **nil** then the default will spawn.
 * **delay** this is the delay at which the firework will be shot off at. This is here so that if the shooter is a normal player shooting off an image, they have a chance at seeing the firework.
+* **cooldown** is the amount of seconds that the player must wait before punching the same fireworks again.
+* **mese_cooldown** is the amount of seconds that the mesecon signal must wait before activating the same fireworks again.
 
 #### EXAMPLE USAGE
 see any of the lua files.
