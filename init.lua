@@ -37,10 +37,14 @@ local function random_explosion_colors()
 	end
 end
 
-function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color_def, color_def_2, alpha)
+function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color_def, color_def_2, alpha, texture, psize)
 	local explosion_colors = random_explosion_colors()
 	local radius = math.random(4, 7)
-	local size = math.random(1.5, 3)
+	if psize then
+		size = psize
+	else
+		size = math.random(1.5, 3)
+	end
 	local glow = math.random(5, 15)
 	local function spawn_colored_particle(velocity)
 		if not color_def then
@@ -57,7 +61,11 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 		if not alpha then
 			alpha = 128
 		end
-		local colored_texture = "black.png^[colorize:" .. color .. ":" .. alpha
+		if texture then
+			colored_texture = texture.."^[colorize:" .. color .. ":" .. alpha
+		else
+			colored_texture = "black.png^[colorize:" .. color .. ":" .. alpha
+		end
 		local random_speed = math.random() + 0.5
 		local particle_properties = {
 			pos = pos,
@@ -217,9 +225,24 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 	end
 end
 
-function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid, depth_layers)
+function fireworks_reimagined.register_limited_firework_explosion(pos, delay, color_grid, depth_layers, texture)
 	local radius = 1.5
+	
+	-- Adjust particle size and pixel scaling based on grid size
+	local grid_width = #color_grid[1]
+	local grid_height = #color_grid
+	local max_size = math.max(grid_width, grid_height)
+	local particle_density = max_size <= 64 and 1 or math.ceil(max_size / 64)
+	local pixel_scale = (0.5 / particle_density)
+	local size_multiplier = 1.5
+
+	-- Spawn particles at random offset and color
 	local function spawn_colored_particle(offset, color)
+		if texture then
+			colored_texture = texture.."^[colorize:" .. color
+		else
+			colored_texture = "black.png^[colorize:" .. color
+		end
 		local x = (math.random() - 0.5) * 2 * radius
 		local y = (math.random() - 0.5) * 2 * radius
 		local z = (math.random() - 0.5) * 2 * radius
@@ -232,7 +255,68 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 			collisiondetection = false,
 			vertical = false,
 			size = 1.5,
-			texture = "black.png^[colorize:" .. color,
+			texture = colored_texture,
+			glow = 10,
+		}
+		minetest.add_particle(particle_properties)
+		minetest.after(delay, function()
+			particle_properties.velocity = random_velocity
+			particle_properties.expirationtime = 2.5 - delay
+			minetest.add_particle(particle_properties)
+		end)
+	end
+
+	-- Create fireworks based on color grid, depth layers, and adjusted density
+	for z = 0, depth_layers do
+		for y = 1, grid_height do
+			for x = 1, grid_width do
+				local color = color_grid[y][x]
+				for dx = 0, particle_density - 1 do
+					for dy = 0, particle_density - 1 do
+						spawn_colored_particle({
+							x = (x * size_multiplier) + (dx * pixel_scale * size_multiplier),
+							y = (y * size_multiplier) + (dy * pixel_scale * size_multiplier),
+							z = z * size_multiplier
+						}, color)
+					end
+				end
+			end
+		end
+	end
+end
+
+function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid, depth_layers, texture)
+	-- Check grid dimensions and fall back to full explosion if the grid is too large
+	local grid_width = #color_grid[1]
+	local grid_height = #color_grid
+	if grid_width > 32 or grid_height > 32 then
+		-- Fall back to register_firework_explosion for larger grids
+		fireworks_reimagined.register_limited_firework_explosion(pos, delay, color_grid, depth_layers)
+		return
+	end
+
+	local radius = 1.5
+	
+
+	local function spawn_colored_particle(offset, color)
+		if texture then
+			colored_texture = texture.."^[colorize:" .. color
+		else
+			colored_texture = "black.png^[colorize:" .. color
+		end
+		local x = (math.random() - 0.5) * 2 * radius
+		local y = (math.random() - 0.5) * 2 * radius
+		local z = (math.random() - 0.5) * 2 * radius
+		local random_velocity = {x = x + math.random(-3, 3), y = y + math.random(-3, 3), z = z + math.random(-3, 3)}
+		local particle_properties = {
+			pos = vector.add(pos, offset),
+			velocity = {x=0, y=0, z=0},
+			acceleration = {x = 0, y = 0, z = 0},
+			expirationtime = delay,
+			collisiondetection = false,
+			vertical = false,
+			size = 1.5,
+			texture = colored_texture,
 			glow = 10,
 		}
 		minetest.add_particle(particle_properties)
@@ -266,6 +350,7 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 	end
 end
 
+
 minetest.register_entity("fireworks_reimagined:firework_entity", {
 	initial_properties = {
 		physical = false,
@@ -284,7 +369,7 @@ minetest.register_entity("fireworks_reimagined:firework_entity", {
 		self.object:set_velocity({x = 0, y = 20, z = 0})
 		self.time_remaining = self.time_remaining - dtime
 		if self.time_remaining <= 0 then
-			fireworks_reimagined.spawn_firework_explosion(pos, self.firework_shape or "sphere", false)
+			fireworks_reimagined.spawn_firework_explosion(pos, self.firework_shape or "sphere", false, nil, nil, nil, nil, nil)
 			self.object:remove()
 			minetest.sound_play("fireworks_explosion", {
 				pos = pos,
@@ -503,20 +588,36 @@ fireworks_reimagined.register_firework_entity("fireworks_reimagined:test_firewor
 
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:test_firework_entity_2", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFFFF", "#FF0000", "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFFFF", "#FF0000", "255", nil, nil)
 	end
 })
 
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:test_3_firework_entity", {
 	spiral = true,
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", nil, "255")
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FF0000", nil, "255", nil, nil)
+	end
+})
+
+fireworks_reimagined.register_firework_entity("fireworks_reimagined:test_4_firework_entity", {
+	spiral = true,
+	firework_explosion = function(pos, shape)
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#FFFF00", nil, "255", "fireworks_redo_particle2.png", math.random(3,4))
+	end
+})
+
+fireworks_reimagined.register_firework_entity("fireworks_reimagined:test_5_firework_entity", {
+	spiral = true,
+	firework_explosion = function(pos, shape)
+		fireworks_reimagined.spawn_firework_explosion(pos, "chaotic", false, "#00FFFF", nil, "255", "fireworks_spark_white.png", math.random(5,6))
 	end
 })
 
 fireworks_reimagined.register_firework_node(nil, "test", "fireworks_reimagined:test_firework_entity", 0)
 fireworks_reimagined.register_firework_node(nil, "test_2", "fireworks_reimagined:test_firework_entity_2", 0)
 fireworks_reimagined.register_firework_node(nil, "test_3", "fireworks_reimagined:test_3_firework_entity", 0)
+fireworks_reimagined.register_firework_node(nil, "test_4", "fireworks_reimagined:test_4_firework_entity", 0)
+fireworks_reimagined.register_firework_node(nil, "test_5", "fireworks_reimagined:test_5_firework_entity", 0)
 
 if minetest.get_modpath("mesecons") then
 	local rules = mesecon.rules.pplate

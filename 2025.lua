@@ -11,7 +11,7 @@ local color_grid = {
 
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:2025_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.register_firework_explosion(pos, 0.5, color_grid, 2)
+		fireworks_reimagined.register_firework_explosion(pos, 0.5, color_grid, 2, nil)
 	end
 })
 
