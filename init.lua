@@ -924,9 +924,8 @@ if minetest.get_modpath("mesecons") then
 	local rules = mesecon.rules.pplate
 end
 
-dofile(modpath.."/creeper.lua")
 dofile(modpath.."/crafting.lua")
 dofile(modpath.."/colored.lua")
-dofile(modpath.."/2025.lua")
+dofile(modpath.."/images.lua")
 dofile(modpath.."/default.lua")
 dofile(modpath.."/test.lua")
