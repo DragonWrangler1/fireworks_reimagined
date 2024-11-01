@@ -11,9 +11,6 @@ register_firework_node(nil, "snowflake", nil, 0, nil, nil)
 register_firework_node(nil, "christmas_tree", nil, 0, nil, nil)
 register_firework_node(nil, "present", nil, 0, nil, nil)
 register_firework_node(nil, "hour_glass", nil, 0, nil, nil)
-if minetest.get_modpath("mcl_core") or minetest.get_modpath("vlf_core") then
-	register_firework_node(nil, "creeper", nil, 0, nil, nil)
-end
 
 if minetest.settings:get_bool("long_delay", true) then
 	register_firework_node(nil, "sphere", nil, 10, nil, nil)
@@ -28,7 +25,4 @@ if minetest.settings:get_bool("long_delay", true) then
 	register_firework_node(nil, "christmas_tree", nil, 10, nil, nil)
 	register_firework_node(nil, "present", nil, 10, nil, nil)
 	register_firework_node(nil, "hour_glass", nil, 10, nil, nil)
-	if minetest.get_modpath("mcl_core") or minetest.get_modpath("vlf_core") then
-		register_firework_node(nil, "creeper", nil, 10, nil, nil)
-	end
 end
