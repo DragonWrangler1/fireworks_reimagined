@@ -26,3 +26,6 @@ This includes useful changes only. Oldest at the top, Newest at the bottom.
 
 ## NOV 2024
 #### V3
+
+* [Commit b6e1d23 - V3 fireworks](https://github.com/DragonWrangler1/fireworks_reimagined/commit/b6e1d231e67415788bd5fbfff6ff37f69f9f558f)
+* **Updated docs, Moved existing fireworks spawning functions under legacy, added new changelog file, cleaned up the code sorting it better, split api and most registries into separate files, added new fireworks api functions to replace the legacy functions, and allowed admins to now bypass fireworks cooldown.**
