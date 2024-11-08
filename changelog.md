@@ -29,3 +29,8 @@ This includes useful changes only. Oldest at the top, Newest at the bottom.
 
 * [Commit b6e1d23 - V3 fireworks](https://github.com/DragonWrangler1/fireworks_reimagined/commit/b6e1d231e67415788bd5fbfff6ff37f69f9f558f)
 * **Updated docs, Moved existing fireworks spawning functions under legacy, added new changelog file, cleaned up the code sorting it better, split api and most registries into separate files, added new fireworks api functions to replace the legacy functions, and allowed admins to now bypass fireworks cooldown.**
+
+#### V4
+
+* [Commit ? - V4 fireworks](https://github.com/DragonWrangler1/fireworks_reimagined/commit/????)
+* **Updated fireworks to use scale tweening to give a more accurate explosion effect, updated delay to allow for the blocks to instead have configurable delays (using a formspec), updated fireworks to have smoother spirals, removed legacy features as they are obsolete and have no benefits, allows for protected fireworks meaning if configured then only the owner can shoot them off (unless the user has the fireworks_master priv), Adds "multi-colored" fireworks (allows the user to configure the fireworks' colors), adds configurable shapes with the multi-colored fireworks block, and updated docs**
