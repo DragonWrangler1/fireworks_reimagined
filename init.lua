@@ -83,6 +83,8 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 			size = size,
 			texture = colored_texture,
 			glow = glow,
+			collisiondetection = true,
+			collision_removal = true,
 		}
 		minetest.add_particle(particle_properties)
 		minetest.after(0.3, function()
@@ -92,9 +94,15 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 				z = velocity.z + math.random(-2, 2)
 			}
 			local breaking_particle_properties = {
+				pos = pos,
 				velocity = breaking_velocity,
 				acceleration = {x = 0, y = -1, z = 0},
 				expirationtime = 2.2,
+				size = size,
+				texture = colored_texture,
+				glow = glow,
+				collisiondetection = true,
+				collision_removal = true,
 			}
 			minetest.add_particle(breaking_particle_properties)
 			if double == true then
@@ -288,7 +296,7 @@ function fireworks_reimagined.spawn_firework_explosion(pos, color_def, color_def
 	minetest.add_particlespawner(particle_params)
 end
 
-function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid, depth_layers, texture, batch_size)
+function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid, depth_layers, texture, batch_size, log)
 	local grid_width = #color_grid[1]
 	local grid_height = #color_grid
 	local size_multiplier = 1.6
@@ -361,7 +369,9 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 			total_spawners = total_spawners + 1
 		end
 	end
-	minetest.log("warning", "Total particle spawners used: " .. total_spawners)
+	if log == true then
+		minetest.log("warning", "Total particle spawners used: " .. total_spawners)
+	end
 end
 
 local last_rightclick_time = {}
@@ -734,9 +744,9 @@ minetest.register_entity("fireworks_reimagined:firework_entity", {
 		self.time_remaining = self.time_remaining - dtime
 		if self.time_remaining <= 0 then
 			if self.ip == true then
-				fireworks_reimagined.spawn_firework_explosion_ip(pos, self.firework_shape or "sphere", false, nil, nil, nil, nil, nil)
+				fireworks_reimagined.spawn_firework_explosion_ip(pos, self.firework_shape or "chaotic", false, nil, nil, nil, nil, nil)
 			else
-				fireworks_reimagined.spawn_firework_explosion(pos, self.firework_shape or "sphere", false, nil, nil, nil, nil, nil)
+				fireworks_reimagined.spawn_firework_explosion(pos, nil, nil, nil, nil, nil)
 			end
 			self.object:remove()
 			minetest.sound_play("fireworks_explosion", {
