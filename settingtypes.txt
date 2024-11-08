@@ -1,2 +1,0 @@
-# When enabled you will have firework blocks that will shoot off fireworks after 10 seconds, along side those that shoot them once per click
-long_delay (Adds Firework blocks with a 10 second delay) bool false
