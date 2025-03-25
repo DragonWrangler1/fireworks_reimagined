@@ -144,7 +144,7 @@ fireworks_reimagined.register_firework_node("fireworks_blue_white.png", "blue_wh
 -- ORANGE
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:orange_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "#da8424", "#da8424", "255", nil, nil)
+		fireworks_reimagined.spawn_firework_explosion(pos, "#FF903F", "#FF903F", "255", nil, nil)
 	end
 })
 
@@ -152,7 +152,7 @@ fireworks_reimagined.register_firework_node(nil, "orange", "fireworks_reimagined
 -- GREEN
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:green_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "#329644", "#329644", "255", nil, nil)
+		fireworks_reimagined.spawn_firework_explosion(pos, "#008000", "#008000", "255", nil, nil)
 	end
 })
 
@@ -160,7 +160,7 @@ fireworks_reimagined.register_firework_node(nil, "green", "fireworks_reimagined:
 -- VIOLET
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:violet_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.spawn_firework_explosion(pos, "#783190", "#783190", "255", nil, nil)
+		fireworks_reimagined.spawn_firework_explosion(pos, "#6600CC", "#6600CC", "255", nil, nil)
 	end
 })
 fireworks_reimagined.register_firework_node(nil, "violet", "fireworks_reimagined:violet_firework_entity", nil, nil)
@@ -179,3 +179,20 @@ fireworks_reimagined.register_firework_entity("fireworks_reimagined:multi_firewo
 })
 
 fireworks_reimagined.register_firework_node(nil, "multi", "fireworks_reimagined:multi_firework_entity", nil, nil)
+
+--===================================--
+--=== COMPAT FOR YOUR LAND SERVER ===--
+--===================================--
+
+fireworks_reimagined.register_firework_entity("fireworks_reimagined:cyan_firework_entity", {
+	firework_explosion = function(pos, shape)
+		fireworks_reimagined.spawn_firework_explosion(pos, "#00C0C0", "#00C0C0", "255", nil, nil)
+	end
+})
+
+fireworks_reimagined.register_firework_node(nil, "cyan", "fireworks_reimagined:cyan_firework_entity", nil, nil)
+
+minetest.register_alias("fireworks_redo:spawner_orange", "fireworks_reimagined:firework_orange")
+minetest.register_alias("fireworks_redo:spawner_green", "fireworks_reimagined:firework_green")
+minetest.register_alias("fireworks_redo:spawner_purple", "fireworks_reimagined:firework_violet")
+minetest.register_alias("fireworks_redo:spawner_cyan", "fireworks_reimagined:firework_cyan")

@@ -20,9 +20,9 @@ local firework_shapes = {
 }
 
 local function random_color()
-	local r = math.random(0, 255)
-	local g = math.random(0, 255)
-	local b = math.random(0, 255)
+	local r = math.random(190, 255)
+	local g = math.random(190, 255)
+	local b = math.random(190, 255)
 	return string.format("#%02X%02X%02X", r, g, b)
 end
 
@@ -51,9 +51,9 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 	if psize then
 		size = psize
 	else
-		size = math.random(1.5, 3)
+		size = math.random(2, 4)
 	end
-	local glow = math.random(5, 15)
+	local glow = math.random(8, 15)
 	local function spawn_colored_particle(velocity)
 		if not color_def then
 			color = explosion_colors[math.random(#explosion_colors)]
@@ -81,7 +81,16 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 			acceleration = {x = 0, y = 0, z = 0},  -- No movement initially
 			expirationtime = 2.5,
 			size = size,
-			texture = colored_texture,
+			texture = {
+				name = colored_texture,
+				scale_tween = {
+					style = "fwd",
+					reps = 1,
+					1.0,
+					0.0,
+					-0.1
+				},
+			},
 			glow = glow,
 			collisiondetection = true,
 			collision_removal = true,
@@ -99,7 +108,16 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 				acceleration = {x = 0, y = -1, z = 0},
 				expirationtime = 2.2,
 				size = size,
-				texture = colored_texture,
+				texture = {
+					name = colored_texture,
+					scale_tween = {
+						style = "fwd",
+						reps = 1,
+						1.0,
+						0.0,
+						-0.1
+					},
+				},
 				glow = glow,
 				collisiondetection = true,
 				collision_removal = true,
@@ -110,9 +128,11 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 			end
 		end)
 	end
+	
+
 	if shape == "sphere" then
 		for i = 1, 360, 15 do
-  			for j = -90, 90, 15 do
+			for j = -90, 90, 15 do
 				local theta = math.rad(i)
 				local phi = math.rad(j)
 				local x = math.cos(phi) * math.cos(theta) * radius
@@ -132,7 +152,7 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 		}
 		for _, point in ipairs(star_points) do
 			spawn_colored_particle(point)
-  		end
+		end
 	elseif shape == "ring" then
 		for i = 1, 360, 15 do
 			local theta = math.rad(i)
@@ -156,7 +176,7 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 	elseif shape == "present" then
 		for x = -radius, radius, radius do
 			for y = -radius, radius, radius do
- 				for z = -radius, radius, radius do
+				for z = -radius, radius, radius do
 					spawn_colored_particle({x = x, y = y, z = z})
 				end
 			end
@@ -165,7 +185,7 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 			local theta = math.rad(i)
 			local x = math.cos(theta) * (radius / 2)
 			local z = math.sin(theta) * (radius / 2)
- 			local y = radius
+			local y = radius
 			spawn_colored_particle({x = x, y = y, z = z})
 		end
 	elseif shape == "snowflake" then
@@ -179,13 +199,23 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 			end
 		end
 	elseif shape == "spiral" then
-		local spiral_height = 10
-		local spiral_turns = 5
+		local spiral_height = 3
+		local spiral_turns = 20
+		local rotation_speed = 0.2
+		local radius_start = 7
+		local radius_end = 7
+
 		for i = 1, 360 * spiral_turns, 15 do
-			local theta = math.rad(i)
+			local angle = math.rad(i)
 			local y = (i / 360) * spiral_height
-			local x = math.cos(theta) * radius
-			local z = math.sin(theta) * radius
+
+			local radius = radius_start + ((radius_end - radius_start) * (y / spiral_height))
+
+			local rotation_angle = angle * rotation_speed
+
+			local x = math.cos(rotation_angle) * radius
+			local z = math.sin(rotation_angle) * radius
+
 			spawn_colored_particle({x = x, y = y, z = z})
 		end
 	elseif shape == "hour_glass" then
@@ -193,7 +223,7 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 		for i = 1, 360 * num_turns, 15 do
 			local theta = math.rad(i)
 			local y = (i / 360) * num_turns
-			local radius = 10 - (y / 2) -- Vary radius over time
+			local radius = 10 - (y / 2)
 			local x = math.cos(theta) * radius
 			local z = math.sin(theta) * radius
 			spawn_colored_particle({x = x, y = y, z = z})
@@ -212,8 +242,8 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 		for x = -radius, radius, radius do
 			for y = -radius, radius, radius do
 				for z = -radius, radius, radius do
- 					spawn_colored_particle({x = x, y = y, z = z})
- 				end
+					spawn_colored_particle({x = x, y = y, z = z})
+				end
 			end
 		end
 	elseif shape == "flame" then
@@ -240,13 +270,13 @@ end
 function fireworks_reimagined.spawn_firework_explosion(pos, color_def, color_def_2, alpha, texture, psize)
 	local explosion_colors = random_explosion_colors()
 	local radius = math.random(5, 8)
-	local size = psize or math.random(1.5, 3)
+	local mnpsize = psize or 1.5
+	local mxpsize = psize or 4
 	local glow = math.random(10, 15)
 	local color = color_def or explosion_colors[math.random(#explosion_colors)]
 	color_def_2 = color_def_2 or explosion_colors[math.random(#explosion_colors)]
 	alpha = alpha or 128
-	
-	-- Randomly select one of the colors for the particle texture
+
 	local chosen_color
 	if math.random(1, 2) == 1 then
 		chosen_color = color
@@ -262,37 +292,52 @@ function fireworks_reimagined.spawn_firework_explosion(pos, color_def, color_def
 	local tex = texture or "black.png"
 
 	local particle_params = {
-		amount = 150,
-		time = 0.5,
+		amount = 600,
+		time = 0.6,
 		minpos = pos,
 		maxpos = pos,
-		minacc = {x = -2, y = -1, z = -2},
-		maxacc = {x = 2, y = -1, z = 2},
-		minexptime = 1.5,
-		maxexptime = 2.5,
-		minvel = -vector.new(math.random(5,8), math.random(5,8), math.random(5,8)),
-		maxvel = vector.new(math.random(5,8), math.random(5,8), math.random(5,8)),
-		minsize = size,
-		maxsize = size,
+		minexptime = 1.2,
+		maxexptime = 3.0,
+
+		radius = {min = -12.0, max = 9.0, bias = 0},
+
+		minsize = mnpsize * 0.8,
+		maxsize = mxpsize * 1.3,
+
+		minvel = {x = -math.random(5,6), y=0, z= -math.random(6, 7)},
+		maxvel = {x = math.random(5,6), y=2, z=math.random(6, 7)},
+		acc = {x=0, y=-6, z=0},
 		glow = glow,
+
 		collisiondetection = true,
-		particlespawner_tweenable = true,
 		collision_removal = true,
-		drag = vector.new(0, -0.2, 0),
+		drag = vector.new(0, -0.8, 0),
+
+		particlespawner_tweenable = true,
 		texpool = {
 			{
 				name = tex .. "^[colorize:" .. color .. ":" .. alpha,
-				scale = {x = 1, y = 1},
-				scale_tween = {{x = 1, y = 1}, {x = 2, y = 2}, {x = 0, y = 0}}
+				scale_tween = {
+					style = "fwd",
+					reps = 1,
+					1.0,
+					0.0,
+					-0.1
+				},
 			},
 			{
 				name = tex .. "^[colorize:" .. color_def_2 .. ":" .. alpha,
-				scale = {x = 1, y = 1},
-				scale_tween = {{x = 1, y = 1}, {x = 2, y = 2}, {x = 0, y = 0}}
+				scale_tween = {
+					style = "fwd",
+					reps = 1,
+					1.0,
+					0.0,
+					-0.1
+				},
 			}
 		},
-		
 	}
+
 	minetest.add_particlespawner(particle_params)
 end
 
@@ -347,10 +392,11 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 				time = delay,
 				minpos = world_minpos,
 				maxpos = world_maxpos,
-				minvel = {x = -radius, y = -radius, z = -radius},
-				maxvel = {x = radius, y = radius, z = radius},
-				minacc = {x = -1, y = -1, z = -1},
-				maxacc = {x = 1, y = 1, z = 1},
+				minvel = {x = -radius*3, y = 0, z = -radius*3},
+				maxvel = {x = radius*3, y = 2, z = radius*3},
+				minvel = {x = math.random(-4,-5), y=0, z=math.random(-6, -7)},
+				maxvel = {x = math.random(4,5), y=2, z=math.random(6, 7)},
+				acc = {x=0, y=-6, z=0},
 				minexptime = delay,
 				maxexptime = particle_lifetime,
 				minsize = 1.2,
@@ -457,12 +503,10 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 			local c1 = meta:get_string("c1")
 			local c2 = meta:get_string("c2")
 
-			-- Set owner if not already set
 			if meta:get_string("owner") == "" then
 				meta:set_string("owner", player_name)
 			end
 
-			-- Check and initialize inventory if needed
 			local inv = meta:get_inventory()
 			if inv:is_empty("fuse") then
 				inv:set_size("fuse", 1)
@@ -476,7 +520,6 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				delay = meta:get_int("delay")
 			end
 
-			-- Launch firework if cooldown period has passed
 			if is_allowed and (not last_rightclick_time[pos_hash] or current_time - last_rightclick_time[pos_hash] >= cd) then
 				last_rightclick_time[pos_hash] = current_time
 				minetest.after(delay, function()
@@ -493,7 +536,6 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 							max_hear_distance = 40,
 							gain = 4.0
 						})
-						-- Clear fuses from block's inventory
 						inv:set_stack("fuse", 1, nil)
 					end
 				end)
@@ -555,13 +597,12 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				local inv = meta:get_inventory()
 				local fuse_stack = inv:get_stack("fuse", 1)
 				if fuse_stack:get_count() > 15 then
-					fuse_stack:set_count(15) -- Limit the fuse count to 15
+					fuse_stack:set_count(15)
 					inv:set_stack("fuse", 1, fuse_stack)
 				end
 			end
 		end,
 		allow_metadata_inventory_put = function(pos, listname, index, stack, player)
-			-- Only allow fuses in the slot, up to a maximum of 15
 			if listname == "fuse" and stack:get_name() == "fireworks_reimagined:fuse" then
 				return math.min(stack:get_count(), 15)
 			elseif listname == "extras" and minetest.get_item_group(stack:get_name(), "firework_rocket") > 0 then
@@ -615,7 +656,7 @@ function fireworks_reimagined.register_firework_entity(name, def)
 		yaw = 0,
 		acceleration = 5,
 		firework_shape = def.firework_shape or "sphere",
-		time_remaining = def.time_remaining or 2,
+		time_remaining = def.time_remaining or 3,
 		spiral = def.spiral or false,
 		spiral_force = def.spiral_force or 100,
 		spiral_radius = def.spiral_radius or 0.1,
@@ -624,6 +665,9 @@ function fireworks_reimagined.register_firework_entity(name, def)
 		color2 = nil ,
 		------------BY NIWLA23--MIT LICENSE------------
 		on_activate = function(self, staticdata, dtime_s)
+			if def.on_activate ~= nil then
+				def.on_activate(self, staticdata, dtime_s)
+			end
 			self.object:set_armor_groups({immortal = 1})
 			minetest.sound_play(self.launch_noise, {
 				max_hear_distance = 100,
@@ -693,7 +737,7 @@ function fireworks_reimagined.register_firework_entity(name, def)
 				self.object:remove()
 				minetest.sound_play("fireworks_explosion", {
 					pos = pos,
-					max_hear_distance = 60,
+					max_hear_distance = 80,
 					gain = 20.0
 				})
 			end
@@ -813,7 +857,6 @@ minetest.register_privilege("fireworks_admin", {
 	give_to_singleplayer = false,
 })
 
--- Clean up usage data when player leaves the game
 minetest.register_on_leaveplayer(function(player)
 	local player_name = player:get_player_name()
 	user_usage[player_name] = nil
