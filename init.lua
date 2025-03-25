@@ -78,7 +78,7 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 		local particle_properties = {
 			pos = pos,
 			velocity = velocity,
-			acceleration = {x = 0, y = 0, z = 0},  -- No movement initially
+			acceleration = {x=0, y=-10, z=0},
 			expirationtime = 2.5,
 			size = size,
 			texture = {
@@ -105,7 +105,7 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 			local breaking_particle_properties = {
 				pos = pos,
 				velocity = breaking_velocity,
-				acceleration = {x = 0, y = -1, z = 0},
+				acceleration = {x = 0, y = -10, z = 0},
 				expirationtime = 2.2,
 				size = size,
 				texture = {
@@ -201,7 +201,7 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 	elseif shape == "spiral" then
 		local spiral_height = 3
 		local spiral_turns = 20
-		local rotation_speed = 0.2
+		local rotation_speed = 0.1
 		local radius_start = 7
 		local radius_end = 7
 
