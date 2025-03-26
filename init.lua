@@ -20,21 +20,25 @@ local firework_shapes = {
 }
 
 local function random_color()
-	local r = math.random(190, 255)
-	local g = math.random(190, 255)
-	local b = math.random(190, 255)
-	return string.format("#%02X%02X%02X", r, g, b)
+    local r, g, b
+    repeat
+        r = math.random(0, 255)
+        g = math.random(0, 255)
+        b = math.random(0, 255)
+    until r > 250 or g > 250 or b > 250  -- Ensure at least one value is above 190
+    return string.format("#%02X%02X%02X", r, g, b)
 end
 
 local function random_explosion_colors()
-	local color1 = random_color()
-	local color2 = random_color()
-	if math.random(2) == 1 then
-		return {color1}
-	else
-		return {color1, color2}
-	end
+    local color1 = random_color()
+    local color2 = random_color()
+    if math.random(2) == 1 then
+        return {color1}
+    else
+        return {color1, color2}
+    end
 end
+
 
 --===========--
 --=== API ===--
@@ -53,7 +57,7 @@ function fireworks_reimagined.spawn_firework_explosion_ip(pos, shape, double, co
 	else
 		size = math.random(2, 4)
 	end
-	local glow = math.random(8, 15)
+	local glow = math.random(12, 15)
 	local function spawn_colored_particle(velocity)
 		if not color_def then
 			color = explosion_colors[math.random(#explosion_colors)]
@@ -296,17 +300,17 @@ function fireworks_reimagined.spawn_firework_explosion(pos, color_def, color_def
 		time = 0.6,
 		minpos = pos,
 		maxpos = pos,
-		minexptime = 1.2,
-		maxexptime = 3.0,
+		minexptime = 1.6,
+		maxexptime = 4.0,
 
 		radius = {min = -12.0, max = 9.0, bias = 0},
 
 		minsize = mnpsize * 0.8,
 		maxsize = mxpsize * 1.3,
 
-		minvel = {x = -math.random(5,6), y=0, z= -math.random(6, 7)},
-		maxvel = {x = math.random(5,6), y=2, z=math.random(6, 7)},
-		acc = {x=0, y=-6, z=0},
+		minvel = {x = -math.random(2,3), y=4, z= -math.random(3, 5)},
+		maxvel = {x = math.random(5,6), y=6, z=math.random(6, 7)},
+		acc = {x=0, y= -6, z=0},
 		glow = glow,
 
 		collisiondetection = true,
@@ -737,7 +741,7 @@ function fireworks_reimagined.register_firework_entity(name, def)
 				self.object:remove()
 				minetest.sound_play("fireworks_explosion", {
 					pos = pos,
-					max_hear_distance = 80,
+					max_hear_distance = 150,
 					gain = 20.0
 				})
 			end
