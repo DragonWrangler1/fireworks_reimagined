@@ -526,6 +526,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 
 			if is_allowed and (not last_rightclick_time[pos_hash] or current_time - last_rightclick_time[pos_hash] >= cd) then
 				last_rightclick_time[pos_hash] = current_time
+				inv:set_stack("fuse", 1, nil)
 				minetest.after(delay, function()
 					local firework_entity = minetest.add_entity(pos, entity or "fireworks_reimagined:firework_entity")
 					if firework_entity then
@@ -540,7 +541,6 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 							max_hear_distance = 40,
 							gain = 4.0
 						})
-						inv:set_stack("fuse", 1, nil)
 					end
 				end)
 			elseif not is_allowed then
