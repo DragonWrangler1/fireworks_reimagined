@@ -659,6 +659,7 @@ function fireworks_reimagined.register_firework_entity(name, def)
 		},
 		yaw = 0,
 		acceleration = 5,
+		static_save = false,
 		firework_shape = def.firework_shape or "sphere",
 		time_remaining = def.time_remaining or 3,
 		spiral = def.spiral or false,
@@ -784,6 +785,7 @@ minetest.register_entity("fireworks_reimagined:firework_entity", {
 	firework_shape = "sphere",
 	time_remaining = 2,
 	ip = false,
+	static_save = false,
 	on_step = function(self, dtime)
 		local pos = self.object:get_pos()
 		if not pos then return end
