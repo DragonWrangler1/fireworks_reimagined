@@ -11,6 +11,9 @@ register_firework_node(nil, "snowflake", nil, nil, nil, true)
 register_firework_node(nil, "christmas_tree", nil, nil, nil, true)
 register_firework_node(nil, "present", nil, nil, nil, true)
 register_firework_node(nil, "hour_glass", nil, nil, nil, true)
+--register_firework_node(nil, "peony", nil, nil, nil, true)
+---register_firework_node(nil, "willow", nil, nil, nil, true)
+--register_firework_node(nil, "chrysanthemum", nil, nil, nil, true)
 
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:moving_spiral_entity", {
 	spiral = true,
