@@ -1,0 +1,29 @@
+# Fireworks Reimagined Settings
+
+# Performance Settings
+fireworks_auto_performance_adjust (Enable automatic performance adjustment) bool true
+
+# When enabled, the mod will automatically adjust firework quality based on server performance.
+# This helps maintain smooth gameplay by reducing particle counts and effects when the server
+# is under heavy load or has many players online.
+# 
+# When disabled, fireworks will always use the configured quality level without automatic changes.
+# Server administrators can still manually adjust quality using chat commands.
+
+fireworks_default_quality (Default firework quality level) enum medium ultra,high,medium,low,minimal
+
+# Sets the default quality level for fireworks when automatic adjustment is disabled
+# or as the starting point when automatic adjustment is enabled.
+#
+# Quality levels:
+# - ultra: Maximum spectacle with 1.5x particles, all effects enabled
+# - high: Great balance with 1.2x particles, most effects  
+# - medium: Balanced performance with standard particle counts
+# - low: Performance-first with 0.6x particles, basic effects
+# - minimal: Potato mode with 0.3x particles, minimal effects
+
+fireworks_adjustment_cooldown (Performance adjustment cooldown) float 5.0 1.0 30.0
+
+# Time in seconds between automatic performance adjustments.
+# Higher values make the system less reactive to performance changes.
+# Lower values make it more responsive but may cause frequent quality changes.
