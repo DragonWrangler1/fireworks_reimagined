@@ -1,6 +1,6 @@
 This includes useful changes only. Oldest at the top, Newest at the bottom.
 
-## OCT 2024
+## OCT. 2024
 #### V1
 * [Commit 58b560b - Initial Commit](https://github.com/DragonWrangler1/fireworks_reimagined/commit/58b560bef3d0b60589850109c388a23145ce6345)
 * **Initial API Upload.**
@@ -24,7 +24,7 @@ This includes useful changes only. Oldest at the top, Newest at the bottom.
 * [Commit 21dbf5e - allow for adjustable cooldown](https://github.com/DragonWrangler1/fireworks_reimagined/commit/21dbf5e87bca7bc0a2bbe96a900766a8524956cb)
 * **updated node registry function to allow for adjustable cooldown**
 
-## NOV 2024
+## NOV. 2024
 #### V3
 
 * [Commit b6e1d23 - V3 fireworks](https://github.com/DragonWrangler1/fireworks_reimagined/commit/b6e1d231e67415788bd5fbfff6ff37f69f9f558f)
@@ -35,103 +35,21 @@ This includes useful changes only. Oldest at the top, Newest at the bottom.
 * [Commit ? - V4 fireworks](https://github.com/DragonWrangler1/fireworks_reimagined/commit/????)
 * **Updated fireworks to use scale tweening to give a more accurate explosion effect, updated delay to allow for the blocks to instead have configurable delays (using a formspec), updated fireworks to have smoother spirals, removed legacy features as they are obsolete and have no benefits, allows for protected fireworks meaning if configured then only the owner can shoot them off (unless the user has the fireworks_master priv), Adds "multi-colored" fireworks (allows the user to configure the fireworks' colors), adds configurable shapes with the multi-colored fireworks block, improved spiral shape (no unfolds), improved default explosions. Now more visible, and updated docs**
 
+## Aug. 2025
 #### V5
 
-* [Commit ? - V5 Enhanced Realistic Edition](https://github.com/DragonWrangler1/fireworks_reimagined/commit/????)
-* **MAJOR VISUAL OVERHAUL:**
+* [Commit ? - V5 fireworks](https://github.com/DragonWrangler1/fireworks_reimagined/commit/????)
+* **MINOR VISUAL OVERHAUL:**
 
-**NEW FIREWORK PATTERNS:**
-* Added **Weeping Willow** - particles shoot up then droop down realistically
-* Added **Chrysanthemum** - expanding rings with delayed bursts  
-* Added **Peony** - main burst followed by secondary breaking effects
-* Enhanced **Christmas Tree** with star and ornament effects
-* Improved **Flame** pattern with realistic fire physics
-* Enhanced **Star** pattern with 3D rays and sparkle tips
+## Dec. 2025
+#### V6
 
-**VISUAL ENHANCEMENTS:**
-* **Enhanced particle physics** with realistic acceleration and drag
-* **Multi-layered particle systems** with trails and breaking effects (7 layers vs 5)
-* **Improved particle scaling** and fading animations with scale/alpha tweening
-* **Ground illumination** and environmental lighting effects
-* **Atmospheric pressure wave** effects with expanding ring particles
-* **Realistic smoke and debris** systems with settling effects
-* **Enhanced color blending** and alpha effects with 16 vibrant colors
-* **New enhanced particle textures** (fireworks_enhanced_spark.png, fireworks_sparkle_enhanced.png)
-* **Smart texture selection system** with particle-type specific textures
-
-**ROCKET ENHANCEMENTS:**
-* **Realistic thrust physics** with decreasing power over time
-* **Enhanced trail system** with multiple particle types and layers
-* **Wobble effects** and wind simulation using time-based calculations
-* **Falling sparks** and smoke trails with realistic physics
-* **Whistle sound effects** during flight
-
-**EXPLOSION IMPROVEMENTS:**
-* **Initial flash effects** for all explosions with bright scaling effects
-* **Multi-stage particle spawning** (primary, secondary, glitter)
-* **Enhanced particle breaking** with multiple stages (3-6 particles vs 2-4)
-* **Realistic debris** and settling smoke with collision detection
-* **Shape-specific sound variations** with echo effects
-* **Finale effects** for spectacular patterns with sparkle bursts
-
-**AUDIO ENHANCEMENTS:**
-* **Shape-specific explosion sounds** with different pitch/gain variations
-* **Echo and reverb effects** for larger explosions (burst, star, chrysanthemum)
-* **Crackling sounds** for chaotic patterns
-* **Rocket whistle sounds** during flight
-* **Distance-based audio effects** with max hearing distance scaling
-
-**ENVIRONMENTAL EFFECTS:**
-* **Ground illumination** that lights up terrain around explosions
-* **Atmospheric disturbance** particles for pressure wave effects
-* **Pressure wave visual effects** with expanding particles
-* **Wind interaction simulation** with time-based wind patterns
-* **Realistic falling debris physics** with collision and removal
-
-**ADVANCED GUI FRAMEWORK:**
-* **Complete GUI overhaul** with tabbed interface (Basic, Advanced, Preview)
-* **Live preview functionality** with Small, Full, and Finale Burst options
-* **Pattern designer** with visual representation of colors and shapes
-* **Quality presets** - One-click Ultra, High, Medium, Low settings
-* **Advanced controls** with sliders for size, height, density, spread, duration
-* **Save/Load system** for persistent pattern storage in player profiles
-* **Help system** with built-in usage instructions
-
-**ADAPTIVE PERFORMANCE SYSTEM:**
-* **Quality-based particle scaling** for different performance levels
-* **Smart particle count adjustment** based on system capabilities
-* **Particle size modifiers** (Ultra: 0.8x, High: 0.9x, Medium/Low: 1.0x)
-* **Efficient texture loading** with enhanced variety and cleanup systems
-* **Performance monitoring** with automatic quality adaptation
-
-**PROFESSIONAL TIMELINE SYSTEM:**
-* **Timeline-based fireworks shows** with precise timing control
-* **Multiple launch points** coordination for synchronized displays
-* **Event types** - Firework, Sound, Lighting, Pause, Marker, Sync Point
-* **Template system** for reusable show configurations
-* **Loop and auto-cleanup** functionality
-
-**SHOWCASE AND DEMO SYSTEM:**
-* **Interactive demonstrations** of all enhanced features
-* **Multiple demo types** - Timeline, Patterns, Performance, All
-* **Help command system** with comprehensive feature documentation
-* **Startup announcements** for enhanced features
-
-**TECHNICAL IMPROVEMENTS:**
-* **Enhanced particle properties** with scale/alpha tweening
-* **Dynamic glow values** (12-20 range with variations)
-* **Collision detection** with smart removal systems
-* **Color transition functions** for smooth color blending
-* **Wind simulation** with sine/cosine wave calculations
-* **Breaking effect system** with initial flash and multiple stages
-* **Trail system** with 7 layers and secondary shimmer particles (60% chance)
-
-**PERFORMANCE OPTIMIZATIONS:**
-* **Scalable quality system** adapts to different performance levels
-* **Smart particle count management** prevents lag
-* **Memory cleanup systems** ensure no performance degradation
-* **Backward compatibility** maintained while enhancing visual experience
-
-**NEW COMMANDS:**
-* `/fireworks_showcase [timeline|patterns|performance|all]` - Demonstrate features
-* `/fireworks_help` - Show comprehensive help for enhanced features
+* [Commit ? - V6 fireworks](https://github.com/DragonWrangler1/fireworks_reimagined/commit/????)
+* **MAJOR SYSTEM AND VISUAL OVERHAUL:** 
+* **Reduced init.lua from 2837 lines to 16 lines through separation of contents.**
+* **Removed complex V5 features (pattern creator, performance monitor, showcase, test blocks, timeline system) to simplify the mod.**
+* **Implemented dynamic color and shape combinations creating 576+ unique fireworks types (9 shapes × 8 primary colors means it registers 72 individual blocks (comparable to registering 2 or 3 new blocks with full moreblocks support), then each individual block has 8 options for secondary colors)**
+* **Added new effects system with shape-specific explosion sounds and finale effects.**
+* **Added dye-based secondary color selection through shapeless crafting.**
+* **Enhanced node registration with customizable tiles and overlay textures.** 
+* **Improved entity handling and particle system architecture for better performance and maintainability. Namely. Greatly utilizing Luatic's new packet batch for particles as well as yl_whosit's baseline for the burst firework**
