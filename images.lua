@@ -39,7 +39,7 @@ local creeper = {
 	{"#669951","#669951","#669951","#669951","#466837","#466837","#669951","#669951","#557c40","#557c40","#669951","#669951","#557c40","#557c40","#669951","#669951"},
 	{"#669951","#669951","#669951","#669951","#466837","#466837","#669951","#669951","#557c40","#557c40","#669951","#669951","#557c40","#557c40","#669951","#669951"},
 }
-if minetest.get_modpath("mcl_core") or minetest.get_modpath("vlf_core") then
+if core.get_modpath("mcl_core") or core.get_modpath("vlf_core") then
 	fireworks_reimagined.register_firework_entity("fireworks_reimagined:creeper_firework_entity", {
 		firework_explosion = function(pos, shape)
 			fireworks_reimagined.register_firework_explosion(pos, 0.5, creeper, 1, nil, 2, false)
