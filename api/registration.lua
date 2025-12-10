@@ -687,4 +687,3 @@ function fireworks_reimagined.register_firework_entity(name, def)
 	core.register_entity(":"..name, entity_def)
 	registered_fireworks[name] = entity_def
 end
-
