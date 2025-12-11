@@ -565,15 +565,17 @@ core.register_on_player_receive_fields(function(player, formname, fields)
 	local is_owner = player_name == owner or privs.fireworks_master or privs.fireworks_admin
 	
 	if not is_owner then return true end
+
+	-- checkbox values will only be submittet when changed -> not in the save-event
+	if fields.allow_others ~= nil then
+		meta:set_string("allow_others", fields.allow_others)
+	end
 	
 	if fields.save or fields.quit then
-		if fields.allow_others ~= nil then
-			core.log("warning", "Setting allow_others to: " .. tostring(fields.allow_others))
-			meta:set_string("allow_others", fields.allow_others)
-		end
 		if fields.delay and fields.delay ~= "" then
-			core.log("warning", "Setting delay to: " .. tostring(fields.delay))
-			meta:set_int("delay", tonumber(fields.delay) or 0)
+			local delay = tonumber(fields.delay) or 0
+			delay = math.min(300, math.max(0, delay))
+			meta:set_int("delay", delay)
 		end
 	end
 	return true
