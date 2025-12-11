@@ -8,11 +8,6 @@ core.register_privilege("fireworks_admin", {
 	give_to_singleplayer = false,
 })
 
-core.register_on_leaveplayer(function(player)
-	local player_name = player:get_player_name()
-	user_usage[player_name] = nil
-end)
-
 core.register_craftitem("fireworks_reimagined:fuse", {
 	description = ("Fuse"),
 	inventory_image = "farming_string.png^[multiply:#343434",

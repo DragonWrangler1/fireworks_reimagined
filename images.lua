@@ -15,7 +15,7 @@ fireworks_reimagined.register_firework_entity("fireworks_reimagined:2025_firewor
 	end
 })
 
-fireworks_reimagined.register_firework_node(nil, "2025", "fireworks_reimagined:2025_firework_entity", 10, 10)
+fireworks_reimagined.register_firework_node("fireworks_2025.png", "2025", "fireworks_reimagined:2025_firework_entity", 10, 10)
 
 --===============--
 --=== CREEPER ===--
@@ -46,5 +46,5 @@ if core.get_modpath("mcl_core") or core.get_modpath("vlf_core") then
 		end
 	})
 
-	fireworks_reimagined.register_firework_node(nil, "creeper", "fireworks_reimagined:creeper_firework_entity", 10, 10)
+	fireworks_reimagined.register_firework_node("fireworks_creeper.png", "creeper", "fireworks_reimagined:creeper_firework_entity", 10, 10)
 end

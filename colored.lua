@@ -147,6 +147,16 @@ for _, shape_name in ipairs(shapes) do
 	core.register_alias("fireworks_reimagined:firework_" .. shape_name, "fireworks_reimagined:firework_white_" .. shape_name)
 end
 
+local non_existent_shapes = {"cube", "present", "christmas_tree"}
+for _, shape_name in ipairs(non_existent_shapes) do
+	core.register_alias("fireworks_reimagined:firework_" .. shape_name, "fireworks_reimagined:firework_white_burst")
+	
+	for _, color_def in ipairs(palette) do
+		local color_name = color_def.name:lower()
+		core.register_alias("fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name, "fireworks_reimagined:firework_white_burst")
+	end
+end
+
 for _, color_def in ipairs(palette) do
 	local color_name = color_def.name:lower()
 	core.register_alias("fireworks_reimagined:firework_" .. color_name, "fireworks_reimagined:firework_" .. color_name .. "_burst")
