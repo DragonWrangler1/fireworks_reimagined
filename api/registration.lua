@@ -494,7 +494,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 			end
 		end,
 		mesecons = { effector = {
-			rules = rules,
+			rules = mesecon.rules.pplate,
 			action_on = function(pos, node)
 				local pos_hash = core.hash_node_position(pos)
 				local current_time = core.get_gametime()
