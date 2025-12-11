@@ -123,7 +123,7 @@ for color_idx, color_def in ipairs(palette) do
 			
 			itemstack:set_count(1)
 			local meta = itemstack:get_meta()
-			meta:set_int("dye_param2", param2)
+			meta:set_int("palette_index", param2)
 			return itemstack
 		end)
 	end

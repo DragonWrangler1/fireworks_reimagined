@@ -321,35 +321,8 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 		paramtype2 = "color",
 		palette = "fireworks_reimagined_palette.png",
 		light_source = 5,
-		on_construct = options.on_construct or function(pos)
-			local meta = core.get_meta(pos)
-			meta:set_string("allow_others", "false")
-			if not meta:contains("param2") then
-				meta:set_int("param2", primary_color_idx - 1)
-			end
-			local inv = meta:get_inventory()
-			inv:set_size("fuse", 1)
-		end,
-		on_place = function(itemstack, placer, pointed_thing)
-			if pointed_thing.type ~= "node" then
-				return itemstack
-			end
-			
-			local pos = pointed_thing.above
-			
-			if core.is_protected(pos, placer:get_player_name()) then
-				core.record_protection_violation(pos, placer:get_player_name())
-				return itemstack
-			end
-			
-			local param2 = primary_color_idx - 1
-			local item_meta = itemstack:get_meta()
-			if item_meta:contains("dye_param2") then
-				param2 = item_meta:get_int("dye_param2")
-			end
-			
-			local node = {name = "fireworks_reimagined:firework_" .. shape, param1 = 0, param2 = param2}
-			core.set_node(pos, node)
+		after_place_node = function(pos, placer, itemstack, pointed_thing)
+			local param2 = core.get_node(pos).param2
 			
 			local c1 = primary_color_hex
 			local c2_idx = (param2 % 8) + 1
@@ -360,32 +333,6 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 			meta:set_string("owner", placer:get_player_name())
 			meta:set_string("c1", c1)
 			meta:set_string("c2", c2)
-			meta:set_int("param2", param2)
-			local inv = meta:get_inventory()
-			inv:set_size("fuse", 1)
-
-			itemstack:take_item()
-			return itemstack
-		end,
-		on_dig = function(pos, node, digger)
-			if core.is_protected(pos, digger:get_player_name()) then
-				core.record_protection_violation(pos, digger:get_player_name())
-				return false
-			end
-			
-			local itemstack = ItemStack("fireworks_reimagined:firework_" .. shape)
-			local meta = itemstack:get_meta()
-			meta:set_int("dye_param2", node.param2)
-			
-			local inv = digger:get_inventory()
-			if inv:room_for_item("main", itemstack) then
-				inv:add_item("main", itemstack)
-			else
-				core.add_item(pos, itemstack)
-			end
-			
-			core.remove_node(pos)
-			return true
 		end,
 		on_punch = function(pos, node, clicker)
 			local wielded_item = clicker:get_wielded_item():get_name()
