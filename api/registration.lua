@@ -548,13 +548,11 @@ end
 core.register_on_player_receive_fields(function(player, formname, fields)
 	if not formname:match("fireworks_reimagined:settings_") then return end
 	
-	core.log("warning", "Global handler: Received fields: " .. dump(fields))
-	
 	local pos_str = formname:match("fireworks_reimagined:settings_(.+)")
-	if not pos_str then return end
+	if not pos_str then return true end
 	
 	local pos = core.string_to_pos(pos_str)
-	if not pos then return end
+	if not pos then return true end
 	
 	local meta = core.get_meta(pos)
 	local player_name = player:get_player_name()
@@ -562,7 +560,7 @@ core.register_on_player_receive_fields(function(player, formname, fields)
 	local privs = core.get_player_privs(player_name)
 	local is_owner = player_name == owner or privs.fireworks_master or privs.fireworks_admin
 	
-	if not is_owner then return end
+	if not is_owner then return true end
 	
 	if fields.save or fields.quit then
 		if fields.allow_others ~= nil then
@@ -574,6 +572,7 @@ core.register_on_player_receive_fields(function(player, formname, fields)
 			meta:set_int("delay", tonumber(fields.delay) or 0)
 		end
 	end
+	return true
 end)
 
 function fireworks_reimagined.register_firework_entity(name, def)
