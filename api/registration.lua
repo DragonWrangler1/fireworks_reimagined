@@ -316,7 +316,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 	local node_def = {
 		description = options.description or ("Firework (" .. shape .. ")"),
 		tiles = node_tiles,
-		groups = { cracky = 1, oddly_breakable_by_hand = 1 },
+		groups = { cracky = 1, oddly_breakable_by_hand = 1 , firework = 1},
 		paramtype = "light",
 		paramtype2 = "color",
 		palette = "fireworks_reimagined_palette.png",
@@ -553,6 +553,10 @@ core.register_on_player_receive_fields(function(player, formname, fields)
 	
 	local pos = core.string_to_pos(pos_str)
 	if not pos then return true end
+
+	local node_name = core.get_node(pos).name
+	-- is the firework node still around?
+	if core.get_item_group(node_name, "firework") ~= 1 then return true end
 	
 	local meta = core.get_meta(pos)
 	local player_name = player:get_player_name()
