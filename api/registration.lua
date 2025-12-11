@@ -329,7 +329,6 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 			end
 			local inv = meta:get_inventory()
 			inv:set_size("fuse", 1)
-			inv:set_size("firework_rocket", 25)
 		end,
 		on_place = function(itemstack, placer, pointed_thing)
 			if pointed_thing.type ~= "node" then
@@ -364,7 +363,6 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 			meta:set_int("param2", param2)
 			local inv = meta:get_inventory()
 			inv:set_size("fuse", 1)
-			inv:set_size("firework_rocket", 25)
 
 			itemstack:take_item()
 			return itemstack
@@ -400,9 +398,6 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				local inv = meta:get_inventory()
 				if inv:is_empty("fuse") then
 					inv:set_size("fuse", 1)
-				end
-				if inv:is_empty("firework_rocket") then
-					inv:set_size("firework_rocket", 25)
 				end
 				local spos = pos.x .. "," .. pos.y .. "," .. pos.z
 				if is_owner and not privs.fireworks_admin then
@@ -529,8 +524,6 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				local current_stack = inv:get_stack("fuse", index)
 				local space_left = math.max(0, 15 - current_stack:get_count())
 				return math.min(stack:get_count(), space_left)
-			elseif listname == "extras" and core.get_item_group(stack:get_name(), "firework_rocket") > 0 then
-				return 1
 			end
 			return 0
 		end,
