@@ -564,8 +564,8 @@ core.register_on_player_receive_fields(function(player, formname, fields)
 		meta:set_string("allow_others", fields.allow_others)
 	end
 	
-	if fields.save or fields.quit then
-		if fields.delay and fields.delay ~= "" then
+	if (fields.save or fields.quit) then
+		if privs.fireworks_admin and fields.delay and fields.delay ~= "" then
 			local delay = tonumber(fields.delay) or 0
 			delay = math.min(300, math.max(0, delay))
 			meta:set_int("delay", delay)
