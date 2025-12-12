@@ -4,10 +4,6 @@ local create_explosion_finale_effects = fireworks_reimagined.create_explosion_fi
 local shapes = {"sphere", "star", "ring", "burst", "spiral", "chaotic", "flame", "snowflake", "hour_glass"}
 local palette = fireworks_reimagined.color_palette
 
-local function encode_secondary_color(secondary_idx)
-	return (secondary_idx - 1) % 8
-end
-
 local dye_map = {
 	Red = "dye:red",
 	Yellow = "dye:yellow",
@@ -40,12 +36,6 @@ local function get_overlay_tiles()
 		"fireworks_overlay_1.png",
 		"fireworks_overlay_1.png",
 	}
-end
-
-local dye_to_index = {}
-for idx, c_def in ipairs(palette) do
-	local dye = dye_map[c_def.name]
-	dye_to_index[dye] = idx
 end
 
 for color_idx, color_def in ipairs(palette) do
@@ -90,42 +80,10 @@ for color_idx, color_def in ipairs(palette) do
 			
 			core.register_craft({
 				type = "shapeless",
-				output = "fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name,
+				output = core.itemstring_with_palette("fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name, secondary_idx - 1),
 				recipe = {"fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name, dye},
 			})
 		end
-		
-		local item_name = "fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name
-		core.register_on_craft(function(itemstack, player, old_craft_grid, craft_inv)
-			if itemstack:get_name() ~= item_name then
-				return
-			end
-			
-			local secondary_idx = nil
-			local dye_count = 0
-			
-			for i = 1, #old_craft_grid do
-				local stack = old_craft_grid[i]
-				local name = stack:get_name()
-				
-				if dye_to_index[name] and dye_count < 1 then
-					secondary_idx = dye_to_index[name]
-					dye_count = dye_count + 1
-				end
-			end
-			
-			local param2
-			if secondary_idx then
-				param2 = encode_secondary_color(secondary_idx)
-			else
-				param2 = encode_secondary_color(color_idx)
-			end
-			
-			itemstack:set_count(1)
-			local meta = itemstack:get_meta()
-			meta:set_int("palette_index", param2)
-			return itemstack
-		end)
 	end
 end
 
