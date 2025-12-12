@@ -1,7 +1,9 @@
 local registered_fireworks = {}
 local default_max_fireworks = tonumber(core.settings:get("fireworks_max_rockets")) or 5
+local default_scan_radius = tonumber(core.settings:get("fireworks_scan_radius")) or 8
 
 local function can_activate(pos, radius, max_fireworks)
+	radius = radius or default_scan_radius
 	local pmin = vector.offset(pos, -radius, 0, -radius)
 	local pmax = vector.offset(pos, radius, 80, radius)
 
@@ -373,8 +375,6 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 			local c1 = is_valid_hex(c1_raw) and c1_raw or "#FFFFFF"
 			local c2 = is_valid_hex(c2_raw) and c2_raw or c1
 
-			local radius = 8
-
 			if meta:get_string("owner") == "" then
 				meta:set_string("owner", player_name)
 			end
@@ -392,7 +392,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				delay = meta:get_int("delay")
 			end
 
-			if is_allowed and (can_activate(pos, radius)) then
+			if is_allowed and (can_activate(pos)) then
 				inv:set_stack("fuse", 1, nil)
 				core.after(delay, function()
 					launch_firework(pos, entity, shape, ip, c1, c2)
@@ -414,9 +414,8 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				local meta = core.get_meta(pos)
 				local c1 = meta:get_string("c1") or "#FFFFFF"
 				local c2 = meta:get_string("c2") or c1
-				local radius = 8
 				
-				if can_activate(pos, radius) then
+				if can_activate(pos) then
 					launch_firework(pos, entity, shape, ip, c1, c2)
 				end
 			end,
