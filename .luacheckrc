@@ -1,10 +1,21 @@
-std = "lua51+luanti"
+std = "lua51"
 
 globals = {
     "fireworks_reimagined"
 }
 
 read_globals = {
+    -- engine
+    "core",
+    "vector",
+    "ItemStack",
+    "dump",
+    "VoxelArea",
+    -- engine adds addition fields, we need to override the defaults
+    "string",
+    "table",
+
+    -- mods
     "mesecon",
 }
 
