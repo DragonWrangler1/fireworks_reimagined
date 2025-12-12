@@ -1,41 +1,19 @@
-local modpath = core.get_modpath("fireworks_reimagined")
-local last_rightclick_time = {}
-local last_mesecons_time = {}
 local registered_fireworks = {}
+local default_max_fireworks = 5
 
-local function get_nearest_activation_time_in_table(pos, radius, time_table)
-	local min_x = math.floor(pos.x - radius)
-	local max_x = math.floor(pos.x + radius)
-	local min_y = math.floor(pos.y - radius)
-	local max_y = math.floor(pos.y + radius)
-	local min_z = math.floor(pos.z - radius)
-	local max_z = math.floor(pos.z + radius)
-	
-	local latest_time = nil
-	
-	for px = min_x, max_x do
-		for py = min_y, max_y do
-			for pz = min_z, max_z do
-				local test_pos = {x = px, y = py, z = pz}
-				local pos_hash = core.hash_node_position(test_pos)
-				if time_table[pos_hash] then
-					if not latest_time or time_table[pos_hash] > latest_time then
-						latest_time = time_table[pos_hash]
-					end
-				end
-			end
+local function can_activate(pos, radius, max_fireworks)
+	local pmin = vector.offset(pos, -radius, 0, -radius)
+	local pmax = vector.offset(pos, radius, 80, radius)
+
+	local count = 0
+	-- luacheck: new read globals core.objects_in_area
+	for ref in core.objects_in_area(pmin, pmax) do
+		if ref:get_luaentity() and registered_fireworks[ref:get_luaentity().name] then
+			count = count + 1
 		end
 	end
-	
-	return latest_time
-end
 
-local function get_nearest_activation_time(pos, radius)
-	return get_nearest_activation_time_in_table(pos, radius, last_rightclick_time)
-end
-
-local function get_nearest_mesecons_activation_time(pos, radius)
-	return get_nearest_activation_time_in_table(pos, radius, last_mesecons_time)
+	return count < (max_fireworks or default_max_fireworks)
 end
 
 local function launch_firework(pos, entity, shape, ip, c1, c2)
@@ -381,11 +359,8 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 			local player_name = clicker:get_player_name()
 			local privs = core.get_player_privs(player_name)
 			local is_owner = player_name == owner or privs.fireworks_master or privs.fireworks_admin
-			local pos_hash = core.hash_node_position(pos)
 			local allow_others = meta:get_string("allow_others") == "true"
 			local is_allowed = is_owner or allow_others or privs.fireworks_master or privs.fireworks_admin
-			local current_time = core.get_gametime()
-			local cd = cooldown or 3
 			local function is_valid_hex(color)
 			-- Accepts #RGB or #RRGGBB
 			return type(color) == "string"
@@ -417,9 +392,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				delay = meta:get_int("delay")
 			end
 
-			local nearest_time = get_nearest_activation_time(pos, radius)
-			if is_allowed and (not nearest_time or current_time - nearest_time >= cd) then
-				last_rightclick_time[pos_hash] = current_time
+			if is_allowed and (can_activate(pos, radius)) then
 				inv:set_stack("fuse", 1, nil)
 				core.after(delay, function()
 					launch_firework(pos, entity, shape, ip, c1, c2)
@@ -438,17 +411,12 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 		mesecons = { effector = {
 			rules = mesecon.rules.pplate,
 			action_on = function(pos, node)
-				local pos_hash = core.hash_node_position(pos)
-				local current_time = core.get_gametime()
 				local meta = core.get_meta(pos)
 				local c1 = meta:get_string("c1") or "#FFFFFF"
 				local c2 = meta:get_string("c2") or c1
-				local mcd = mese_cooldown or 4
 				local radius = 8
 				
-				local nearest_time = get_nearest_mesecons_activation_time(pos, radius)
-				if not nearest_time or current_time - nearest_time >= mcd then
-					last_mesecons_time[pos_hash] = current_time
+				if can_activate(pos, radius) then
 					launch_firework(pos, entity, shape, ip, c1, c2)
 				end
 			end,
