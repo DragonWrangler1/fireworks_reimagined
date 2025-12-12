@@ -1,4 +1,3 @@
-local rules = mesecon.rules.pplate
 local modpath = core.get_modpath("fireworks_reimagined")
 
 fireworks_reimagined = {}
