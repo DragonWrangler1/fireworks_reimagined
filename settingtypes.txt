@@ -27,3 +27,13 @@ fireworks_adjustment_cooldown (Performance adjustment cooldown) float 5.0 1.0 30
 # Time in seconds between automatic performance adjustments.
 # Higher values make the system less reactive to performance changes.
 # Lower values make it more responsive but may cause frequent quality changes.
+
+fireworks_max_rockets (Max number of rockets above a firework spawner) int 5
+
+# amount of rockets allowed in a region above any fireworks spawner.
+# if the treshold is reached, the spawner will refuse to add new firework rockets
+# use this to prevent package spam from too many particles
+
+fireworks_scan_radius (firework search radius) int 8
+
+# defines the region used in fireworks_max_rockets

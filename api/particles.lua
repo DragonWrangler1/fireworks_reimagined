@@ -325,7 +325,7 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 	end
 
 	local spawn_colored_particle_wrapper = function(velocity, opts)
-		return spawn_colored_particle(pos, color_def, color_def_2, explosion_colors, alpha, texture, size, glow, eligible_players, velocity, opts)
+		return spawn_colored_particle(pos, color_def, color_def_2, nil, alpha, texture, size, glow, eligible_players, velocity, opts)
 	end
 	
 	local initial_cloud = {
@@ -376,7 +376,7 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 
 	local shape_spawner = fireworks_reimagined.shape_functions[shape]
 	if shape_spawner then
-		shape_spawner(pos, radius, size, glow, eligible_players, color_def, color_def_2, explosion_colors, alpha, texture, spawn_colored_particle_wrapper)
+		shape_spawner(pos, radius, size, glow, eligible_players, color_def, color_def_2, nil, alpha, texture, spawn_colored_particle_wrapper)
 	end
 	local base_props = {
 		amount = 600,
