@@ -1,5 +1,5 @@
 local registered_fireworks = {}
-local default_max_fireworks = 5
+local default_max_fireworks = tonumber(core.settings:get("fireworks_max_rockets")) or 5
 
 local function can_activate(pos, radius, max_fireworks)
 	local pmin = vector.offset(pos, -radius, 0, -radius)
