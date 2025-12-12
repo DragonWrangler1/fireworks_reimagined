@@ -255,11 +255,11 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 	end
 	
 	-- Performance tracking
-	core.after(6.0, function()
-		if log == true then
+	if log == true then
+		core.after(6.0, function()
 			core.log("warning", "Total particle spawners used: " .. total_spawners)
-		end
-	end)
+		end)
+	end
 end
 
 local color_palette = {
