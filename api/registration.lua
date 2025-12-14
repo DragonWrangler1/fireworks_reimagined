@@ -296,11 +296,16 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 	local node_def = {
 		description = options.description or ("Firework (" .. shape .. ")"),
 		tiles = node_tiles,
-		groups = { cracky = 1, oddly_breakable_by_hand = 1 , firework = 1},
+		groups = { cracky = 1, oddly_breakable_by_hand = 1 , firework = 1, 
+					handy = 1, axey = 1, material_wood = 1,
+					wood = 1, building_block = 1
+		},
 		paramtype = "light",
 		paramtype2 = "color",
 		palette = "fireworks_reimagined_palette.png",
 		light_source = 5,
+		_mcl_blast_resistance = 1,
+		_mcl_hardness = 1,
 		after_place_node = function(pos, placer, itemstack, pointed_thing)
 			local param2 = core.get_node(pos).param2
 			
@@ -326,29 +331,38 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				if inv:is_empty("fuse") then
 					inv:set_size("fuse", 1)
 				end
-				local spos = pos.x .. "," .. pos.y .. "," .. pos.z
-				if is_owner and not privs.fireworks_admin then
-					local formspec = table.concat({
-							"formspec_version[6]",
-							"size[11,9]",
-							"label[4.5,0.6;Settings]",
-							"checkbox[0.7,3;allow_others;Allow others to launch this firework;" .. meta:get_string("allow_others") .. "]",
-							"list[nodemeta:" .. spos .. ";fuse;9.45,2.5;1,1]",
-							"list[current_player;main;0.7,3.8;8,4]",
-							"button_exit[0.7,0.4;2,1;save;<]",
-							"listring[nodemeta:" .. spos .. ";fuse]",
-					})
-					core.show_formspec(player_name, "fireworks_reimagined:settings_" .. core.pos_to_string(pos), formspec)
-
-				elseif privs.fireworks_admin then
-					local formspec = table.concat({
-							"formspec_version[6]" ..
-							"size[8,5]" ..
-							"label[0.4,0.7;Settings]" ..
-							"checkbox[0.4,1.5;allow_others;Allow others to launch this firework;".. meta:get_string("allow_others") .."]" ..
-							"field[0.4,2.5;7,0.5;delay;Launch Delay (seconds);".. meta:get_int("delay") .."]" ..
-							"button_exit[2.9,3.4;2,1;save;Close]"
-					})
+				
+				local has_mcl = core.get_modpath("mcl_core") ~= nil
+				local has_mcl_formspec = core.get_modpath("mcl_formspec") ~= nil
+				
+				if is_owner then
+					local formspec
+					if has_mcl and has_mcl_formspec then
+						formspec = fireworks_reimagined.build_mcl_settings_formspec(pos, player_name, is_owner, privs)
+					else
+						local spos = pos.x .. "," .. pos.y .. "," .. pos.z
+						if not privs.fireworks_admin then
+							formspec = table.concat({
+									"formspec_version[6]",
+									"size[11,9]",
+									"label[4.5,0.6;Settings]",
+									"checkbox[0.7,3;allow_others;Allow others to launch this firework;" .. meta:get_string("allow_others") .. "]",
+									"list[nodemeta:" .. spos .. ";fuse;9.45,2.5;1,1]",
+									"list[current_player;main;0.7,3.8;8,4]",
+									"button_exit[0.7,0.4;2,1;save;<]",
+									"listring[nodemeta:" .. spos .. ";fuse]",
+							})
+						else
+							formspec = table.concat({
+									"formspec_version[6]",
+									"size[8,5]",
+									"label[0.4,0.7;Settings]",
+									"checkbox[0.4,1.5;allow_others;Allow others to launch this firework;".. meta:get_string("allow_others") .."]",
+									"field[0.4,2.5;7,0.5;delay;Launch Delay (seconds);".. meta:get_int("delay") .."]",
+									"button_exit[2.9,3.4;2,1;save;Close]"
+							})
+						end
+					end
 					core.show_formspec(player_name, "fireworks_reimagined:settings_" .. core.pos_to_string(pos), formspec)
 				end
 			else
@@ -481,7 +495,7 @@ core.register_on_player_receive_fields(function(player, formname, fields)
 		meta:set_string("allow_others", fields.allow_others)
 	end
 	
-	if (fields.save or fields.quit) then
+	if (fields.save or fields.quit or fields.cancel) then
 		if privs.fireworks_admin and fields.delay and fields.delay ~= "" then
 			local delay = tonumber(fields.delay) or 0
 			delay = math.min(300, math.max(0, delay))
