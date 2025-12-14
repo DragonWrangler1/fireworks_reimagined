@@ -14,11 +14,16 @@ core.register_craftitem("fireworks_reimagined:fuse", {
 	groups = {flammable = 1},
 })
 
+local has_farming = core.get_modpath("farming") ~= nil
+local has_mcl = core.get_modpath("mcl_core") ~= nil
+local string_item = has_farming and "farming:string" or (has_mcl and "mcl_core:string" or "default:stick")
+local coal_item = has_mcl and "mcl_core:coal" or "default:coal_lump"
+
 core.register_craft({
 	output = "fireworks_reimagined:fuse 9",
 	recipe = {
-		{"farming:string", "farming:string", "farming:string"},
-		{"farming:string", "default:coal_lump", "farming:string"},
-		{"farming:string", "farming:string", "farming:string"},
+		{string_item, string_item, string_item},
+		{string_item, coal_item, string_item},
+		{string_item, string_item, string_item},
 	}
 })

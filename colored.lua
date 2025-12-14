@@ -4,22 +4,109 @@ local create_explosion_finale_effects = fireworks_reimagined.create_explosion_fi
 local shapes = {"sphere", "star", "ring", "burst", "spiral", "chaotic", "flame", "snowflake", "hour_glass"}
 local palette = fireworks_reimagined.color_palette
 
-local dye_map = {
-	Red = "dye:red",
-	Yellow = "dye:yellow",
-	Blue = "dye:blue",
-	White = "dye:white",
-	Orange = "dye:orange",
-	Green = "dye:green",
-	Violet = "dye:violet",
-	Cyan = "dye:cyan",
+local has_mcl = core.get_modpath("mcl_core") ~= nil
+local has_default = core.get_modpath("default") ~= nil
+local has_mcl_dyes = core.get_modpath("mcl_dye") ~= nil
+
+local stick_item = has_mcl and "mcl_core:stick" or "default:stick"
+local tnt_item = has_mcl and "mcl_tnt:tnt" or "tnt:tnt"
+
+local dye_map
+if has_mcl_dyes then
+	dye_map = {
+		Red = "mcl_dye:red",
+		Yellow = "mcl_dye:yellow",
+		Blue = "mcl_dye:blue",
+		White = "mcl_dye:white",
+		Orange = "mcl_dye:orange",
+		Green = "mcl_dye:dark_green",
+		Violet = "mcl_dye:violet",
+		Cyan = "mcl_dye:cyan",
+	}
+else
+	dye_map = {
+		Red = "dye:red",
+		Yellow = "dye:yellow",
+		Blue = "dye:blue",
+		White = "dye:white",
+		Orange = "dye:orange",
+		Green = "dye:green",
+		Violet = "dye:violet",
+		Cyan = "dye:cyan",
+	}
+end
+
+local shape_recipes = {
+	sphere = {
+		{stick_item, "COLOR_DYE", stick_item},
+		{"COLOR_DYE", tnt_item, "COLOR_DYE"},
+		{stick_item, "COLOR_DYE", stick_item},
+	},
+	star = {
+		{"", stick_item, ""},
+		{stick_item, tnt_item, stick_item},
+		{"", stick_item, ""},
+	},
+	ring = {
+		{stick_item, stick_item, stick_item},
+		{stick_item, tnt_item, stick_item},
+		{stick_item, stick_item, stick_item},
+	},
+	burst = {
+		{"COLOR_DYE", "COLOR_DYE", "COLOR_DYE"},
+		{"COLOR_DYE", tnt_item, "COLOR_DYE"},
+		{"COLOR_DYE", "COLOR_DYE", "COLOR_DYE"},
+	},
+	spiral = {
+		{stick_item, stick_item, "COLOR_DYE"},
+		{stick_item, tnt_item, stick_item},
+		{"COLOR_DYE", stick_item, stick_item},
+	},
+	chaotic = {
+		{stick_item, "COLOR_DYE", stick_item},
+		{"COLOR_DYE", tnt_item, stick_item},
+		{stick_item, stick_item, "COLOR_DYE"},
+	},
+	flame = {
+		{"", stick_item, ""},
+		{stick_item, tnt_item, stick_item},
+		{"COLOR_DYE", "COLOR_DYE", "COLOR_DYE"},
+	},
+	snowflake = {
+		{stick_item, "COLOR_DYE", stick_item},
+		{"COLOR_DYE", "COLOR_DYE", "COLOR_DYE"},
+		{stick_item, "COLOR_DYE", stick_item},
+	},
+	hour_glass = {
+		{stick_item, stick_item, stick_item},
+		{"", tnt_item, ""},
+		{stick_item, stick_item, stick_item},
+	},
 }
 
+local function substitute_dye_in_recipe(recipe, color_dye)
+	local substituted = {}
+	for row_idx, row in ipairs(recipe) do
+		substituted[row_idx] = {}
+		for col_idx, item in ipairs(row) do
+			if item == "COLOR_DYE" then
+				substituted[row_idx][col_idx] = color_dye
+			else
+				substituted[row_idx][col_idx] = item
+			end
+		end
+	end
+	return substituted
+end
+
 local function get_colored_tiles(primary_hex)
-	local overlay2_with_color = "darkage_box.png^(fireworks_overlay_2.png^[colorize:" .. primary_hex .. ":100)"
+	local has_darkage = core.get_modpath("darkage") ~= nil
+	local base_texture = has_darkage and "darkage_box.png" or "black.png"
+	local top_texture = has_darkage and "darkage_box_top.png" or "black.png"
+	local overlay2_with_color = base_texture .. "^(fireworks_overlay_2.png^[colorize:" .. primary_hex .. ":100)"
 	return {
 		{name = "fireworks_box_top.png", color = "white"},
-		{name = "darkage_box_top.png", color = "white"},
+		{name = top_texture, color = "white"},
 		{name = overlay2_with_color, color = "white"},
 		{name = overlay2_with_color, color = "white"},
 		{name = overlay2_with_color, color = "white"},
@@ -37,6 +124,8 @@ local function get_overlay_tiles()
 		"fireworks_overlay_1.png",
 	}
 end
+
+local enable_crafting = core.settings:get_bool("fireworks_enable_crafting", true)
 
 for color_idx, color_def in ipairs(palette) do
 	local color_name = color_def.name:lower()
@@ -66,14 +155,17 @@ for color_idx, color_def in ipairs(palette) do
 		
 		fireworks_reimagined.register_firework_node(nil, node_name, "fireworks_reimagined:" .. color_name .. "_" .. shape_name .. "_firework_entity", nil, nil, true, reg_options)
 		
-		core.register_craft({
-			output = "fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name,
-			recipe = {
-				{"default:stick", "dye:white", "default:stick"},
-				{"dye:white", "tnt:tnt", "dye:white"},
-				{"default:stick", "dye:white", "default:stick"}
-			},
-		})
+		if enable_crafting then
+			local recipe = shape_recipes[shape_name]
+			if recipe then
+				local color_dye = dye_map[color_def.name]
+				local substituted_recipe = substitute_dye_in_recipe(recipe, color_dye)
+				core.register_craft({
+					output = "fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name,
+					recipe = substituted_recipe,
+				})
+			end
+		end
 		
 		for secondary_idx, secondary_def in ipairs(palette) do
 			local dye = dye_map[secondary_def.name]

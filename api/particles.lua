@@ -62,11 +62,11 @@ local function get_particle_variations(color_def, color_def_2, alpha)
 					scale_tween = { style = "fwd", reps = 1, 1.4, 1.0, 0.2, start = 0.0, finish = 1.0 },
 				},
 				{
-					name =  "default_cloud.png^[colorize:" .. color_def .. ":" .. alpha,
+					name =  "black.png^[colorize:#FFF^[colorize:" .. color_def .. ":" .. alpha,
 					scale_tween = { style = "fwd", reps = 1, 1.4, 1.0, 0.2, start = 0.0, finish = 1.0 },
 				},
 				{
-					name = "default_cloud.png^[colorize:" .. color_def_2 .. ":" .. alpha,
+					name = "black.png^[colorize:#FFF^[colorize:" .. color_def_2 .. ":" .. alpha,
 					scale_tween = { style = "fwd", reps = 1, 1.4, 1.0, 0.2, start = 0.0, finish = 1.0 },
 				},
 				{
@@ -98,11 +98,11 @@ local function get_particle_variations(color_def, color_def_2, alpha)
 		break_props1 = {
 			texpool = {
 				{ 
-					name = "default_cloud.png^[colorize:" .. color_def .. ":100",
+					name = "black.png^[colorize:#FFF^[colorize:#FFF^[colorize:" .. color_def .. ":100",
 					scale_tween = { style="fwd", reps=1, 2.0, 0.5, -0.1, start=0.0, finish=1.0 }
 				},
 				{ 
-					name = "default_cloud.png^[colorize:" .. color_def_2 .. ":100",
+					name = "black.png^[colorize:#FFF^[colorize:#FFF^[colorize:" .. color_def_2 .. ":100",
 					scale_tween = { style="fwd", reps=1, 2.0, 0.5, -0.1, start=0.0, finish=1.0 }
 				}
 			},
@@ -223,7 +223,7 @@ local function spawn_colored_particle(pos, color_def, color_def_2, explosion_col
 			expirationtime = 0.1,
 			size = enhanced_size * 2.5,
 			texture = {
-				name = "default_cloud.png^[colorize:" .. color .. ":100",
+				name = "black.png^[colorize:#FFF^[colorize:" .. color .. ":100",
 				scale_tween = {
 					style = "fwd",
 					reps = 1,
@@ -335,7 +335,7 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 		expirationtime = 0.15,
 		size = radius * 3,
 		texture = {
-			name = "default_cloud.png^[colorize:" .. (color_def or explosion_color) .. ":80",
+			name = "black.png^[colorize:#FFF^[colorize:" .. (color_def or explosion_color) .. ":80",
 			scale_tween = {
 				style = "fwd",
 				reps = 1,

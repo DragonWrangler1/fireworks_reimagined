@@ -63,7 +63,7 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 	
 	local grid_width = #color_grid[1]
 	local grid_height = #color_grid
-	local size_multiplier = 1.6
+	local size_multiplier = 2.2
 	local particle_lifetime = 2.5 - delay
 	local radius = math.max(grid_width, grid_height) * size_multiplier * 0.8
 	local b_size = batch_size or 1
@@ -408,18 +408,6 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				core.chat_send_player(player_name, "Please wait before launching another firework!")
 			end
 		end,
-		mesecons = { effector = {
-			rules = mesecon.rules.pplate,
-			action_on = function(pos, node)
-				local meta = core.get_meta(pos)
-				local c1 = meta:get_string("c1") or "#FFFFFF"
-				local c2 = meta:get_string("c2") or c1
-				
-				if can_activate(pos) then
-					launch_firework(pos, entity, shape, ip, c1, c2)
-				end
-			end,
-		}},
 		on_metadata_inventory_put = function(pos, listname, index, stack, player)
 			if listname == "fuse" and stack:get_name() == "fireworks_reimagined:fuse" then
 				local meta = core.get_meta(pos)
@@ -448,6 +436,21 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 	if options.on_dig then node_def.on_dig = options.on_dig end
 	if options.on_place then node_def.on_place = options.on_place end
 	if options.overlay_tiles then node_def.overlay_tiles = options.overlay_tiles end
+	
+	if core.get_modpath("mesecons") then
+		node_def.mesecons = { effector = {
+			rules = mesecon.rules.pplate,
+			action_on = function(pos, node)
+				local meta = core.get_meta(pos)
+				local c1 = meta:get_string("c1") or "#FFFFFF"
+				local c2 = meta:get_string("c2") or c1
+				
+				if can_activate(pos) then
+					launch_firework(pos, entity, shape, ip, c1, c2)
+				end
+			end,
+		}}
+	end
 	
 	core.register_node(":fireworks_reimagined:firework_" .. shape, node_def)
 end

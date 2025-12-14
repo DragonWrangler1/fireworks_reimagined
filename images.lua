@@ -1,3 +1,14 @@
+local has_mcl = core.get_modpath("mcl_core") ~= nil
+local has_mcl_dyes = core.get_modpath("mcl_dye") ~= nil
+
+local stick_item = has_mcl and "mcl_core:stick" or "default:stick"
+local tnt_item = has_mcl and "mcl_tnt:tnt" or "tnt:tnt"
+local enable_crafting = core.settings:get_bool("fireworks_enable_crafting", true)
+
+local white_dye = has_mcl_dyes and "mcl_dye:white" or "dye:white"
+local yellow_dye = has_mcl_dyes and "mcl_dye:yellow" or "dye:yellow"
+local green_dye = has_mcl_dyes and "mcl_dye:dark_green" or "dye:green"
+
 local color_grid = {
 {"#000000","#bfa200","#bfa200","#bfa200","#bfa200","#bfa200","#000000","#000000","#bfa200","#bfa200","#bfa200","#000000","#000000","#bfa200","#bfa200","#bfa200","#bfa200","#bfa200","#000000","#000000","#bfa200","#bfa200","#bfa200","#000000","#000000"},
 {"#000000","#000000","#bfa200","#bfa200","#000000","#000000","#000000","#bfa200","#bfa200","#000000","#bfa200","#bfa200","#000000","#000000","#bfa200","#bfa200","#000000","#000000","#000000","#bfa200","#000000","#000000","#000000","#bfa200","#000000"},
@@ -11,11 +22,22 @@ local color_grid = {
 
 fireworks_reimagined.register_firework_entity("fireworks_reimagined:2025_firework_entity", {
 	firework_explosion = function(pos, shape)
-		fireworks_reimagined.register_firework_explosion(pos, 0.5, color_grid, 1, nil, 1, false)
+		fireworks_reimagined.register_firework_explosion(pos, 0.5, color_grid, 2, nil, 2, false)
 	end
 })
 
 fireworks_reimagined.register_firework_node("fireworks_2025.png", "2025", "fireworks_reimagined:2025_firework_entity", 10, 10)
+
+if enable_crafting then
+	core.register_craft({
+		output = "fireworks_reimagined:firework_2025",
+		recipe = {
+			{white_dye, yellow_dye, white_dye},
+			{yellow_dye, tnt_item, yellow_dye},
+			{white_dye, yellow_dye, white_dye},
+		},
+	})
+end
 
 --===============--
 --=== CREEPER ===--
@@ -42,9 +64,20 @@ local creeper = {
 if core.get_modpath("mcl_core") or core.get_modpath("vlf_core") then
 	fireworks_reimagined.register_firework_entity("fireworks_reimagined:creeper_firework_entity", {
 		firework_explosion = function(pos, shape)
-			fireworks_reimagined.register_firework_explosion(pos, 0.5, creeper, 1, nil, 2, false)
+			fireworks_reimagined.register_firework_explosion(pos, 0.5, creeper, 2, nil, 2, false)
 		end
 	})
 
 	fireworks_reimagined.register_firework_node("fireworks_creeper.png", "creeper", "fireworks_reimagined:creeper_firework_entity", 10, 10)
+
+	if enable_crafting then
+		core.register_craft({
+			output = "fireworks_reimagined:firework_creeper",
+			recipe = {
+				{green_dye, green_dye, green_dye},
+				{green_dye, tnt_item, green_dye},
+				{green_dye, green_dye, green_dye},
+			},
+		})
+	end
 end

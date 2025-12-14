@@ -5,7 +5,7 @@ local function get_enhanced_particle_texture(color, alpha, particle_type)
 		default = {
 			"fireworks_spark_white.png",
 			"fireworks_enhanced_spark.png",
-			"default_cloud.png",
+			"black.png^[colorize:#FFF",
 			"black.png"
 		},
 		sparkle = {
@@ -14,17 +14,17 @@ local function get_enhanced_particle_texture(color, alpha, particle_type)
 			"fireworks_star.png"
 		},
 		smoke = {
-			"default_cloud.png",
+			"black.png^[colorize:#FFF",
 			"black.png"
 		},
 		flame = {
 			"fireworks_flame.png",
-			"default_cloud.png",
+			"black.png^[colorize:#FFF",
 			"fireworks_enhanced_spark.png"
 		},
 		trail = {
 			"fireworks_enhanced_spark.png",
-			"default_cloud.png"
+			"black.png^[colorize:#FFF"
 		}
 	}
 	
