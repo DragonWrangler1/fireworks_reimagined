@@ -410,12 +410,24 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				inv:set_stack("fuse", 1, nil)
 				core.after(delay, function()
 					launch_firework(pos, entity, shape, ip, c1, c2)
+					if core.get_modpath("mesecons") then
+						mesecon.receptor_on(pos, mesecon.rules.pplate)
+						core.after(1, function()
+							mesecon.receptor_off(pos, mesecon.rules.pplate)
+						end)
+					end
 				end)
 			elseif not is_allowed then
 				core.chat_send_player(player_name, "You don't have permission to launch this firework.")
 			elseif privs.fireworks_master or privs.fireworks_admin then
 				core.after(delay, function()
 					launch_firework(pos, entity, shape, ip, c1, c2)
+					if core.get_modpath("mesecons") then
+						mesecon.receptor_on(pos, mesecon.rules.pplate)
+						core.after(1, function()
+							mesecon.receptor_off(pos, mesecon.rules.pplate)
+						end)
+					end
 					inv:set_stack("fuse", 1, nil)
 				end)
 			else
@@ -452,18 +464,71 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 	if options.overlay_tiles then node_def.overlay_tiles = options.overlay_tiles end
 	
 	if core.get_modpath("mesecons") then
-		node_def.mesecons = { effector = {
-			rules = mesecon.rules.pplate,
-			action_on = function(pos, node)
-				local meta = core.get_meta(pos)
-				local c1 = meta:get_string("c1") or "#FFFFFF"
-				local c2 = meta:get_string("c2") or c1
-				
-				if can_activate(pos) then
+		node_def.mesecons = {
+			effector = {
+				rules = mesecon.rules.pplate,
+
+				action_on = function(pos, node)
+					local meta = core.get_meta(pos)
+					local now = core.get_gametime()
+
+					-- Timestamp lock (1 second)
+					if meta:get_int("busy_until") > now then
+						return
+					end
+
+					if not can_activate(pos) then
+						return
+					end
+
+					meta:set_int("busy_until", now + 1)
+
+					local c1 = meta:get_string("c1") or "#FFFFFF"
+					local c2 = meta:get_string("c2") or c1
+
 					launch_firework(pos, entity, shape, ip, c1, c2)
-				end
+
+					-- Output a short mesecon pulse
+					mesecon.receptor_on(pos, mesecon.rules.pplate)
+					core.after(1, function()
+						mesecon.receptor_off(pos, mesecon.rules.pplate)
+					end)
+				end,
+			},
+		}
+	end
+
+	
+	if core.get_modpath("mcl_redstone") then
+		node_def._mcl_redstone = {
+			connects_to = function(node, dir)
+				return true
 			end,
-		}}
+			update = function(pos, node)
+				local meta = core.get_meta(pos)
+				local power = mcl_redstone.get_power(pos)
+				local prev_power = meta:get_int("mcl_redstone_power")
+				
+				if power > 0 and prev_power == 0 and can_activate(pos) then
+					local c1 = meta:get_string("c1") or "#FFFFFF"
+					local c2 = meta:get_string("c2") or c1
+					
+					launch_firework(pos, entity, shape, ip, c1, c2)
+					
+					local directions = {
+						{x=1, y=0, z=0}, {x=-1, y=0, z=0},
+						{x=0, y=1, z=0}, {x=0, y=-1, z=0},
+						{x=0, y=0, z=1}, {x=0, y=0, z=-1}
+					}
+					for _, dir in ipairs(directions) do
+						local neighbor_pos = vector.add(pos, dir)
+						mcl_redstone.update_node(neighbor_pos)
+					end
+				end
+				
+				meta:set_int("mcl_redstone_power", power)
+			end,
+		}
 	end
 	
 	core.register_node(":fireworks_reimagined:firework_" .. shape, node_def)
