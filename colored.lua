@@ -101,12 +101,29 @@ end
 
 local function get_colored_tiles(primary_hex)
 	local has_darkage = core.get_modpath("darkage") ~= nil
-	local base_texture = has_darkage and "darkage_box.png" or "black.png"
-	local top_texture = has_darkage and "darkage_box_top.png" or "black.png"
-	local overlay2_with_color = base_texture .. "^(fireworks_overlay_2.png^[colorize:" .. primary_hex .. ":100)"
+	local has_mcl_barrels = core.get_modpath("mcl_barrels") ~= nil
+	
+	local top_texture, bottom_texture, side_texture
+	
+	if has_mcl then
+		top_texture = "mcl_fireworks_box_top.png"
+		bottom_texture = has_mcl_barrels and "mcl_barrels_barrel_bottom.png" or "black.png"
+		side_texture = has_mcl_barrels and "mcl_barrels_barrel_side.png" or "black.png"
+	elseif has_darkage then
+		top_texture = "fireworks_box_top.png"
+		bottom_texture = "darkage_box.png"
+		side_texture = "darkage_box.png"
+	else
+		top_texture = "fireworks_box_top.png"
+		bottom_texture = "black.png"
+		side_texture = "black.png"
+	end
+	
+	local overlay2_with_color = side_texture .. "^(fireworks_overlay_2.png^[colorize:" .. primary_hex .. ":100)"
+	
 	return {
-		{name = "fireworks_box_top.png", color = "white"},
 		{name = top_texture, color = "white"},
+		{name = bottom_texture, color = "white"},
 		{name = overlay2_with_color, color = "white"},
 		{name = overlay2_with_color, color = "white"},
 		{name = overlay2_with_color, color = "white"},

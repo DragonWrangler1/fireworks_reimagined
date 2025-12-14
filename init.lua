@@ -7,6 +7,7 @@ dofile(modpath .. "/utilities/particles.lua")
 dofile(modpath .. "/effects/explosions.lua")
 dofile(modpath .. "/api/particles.lua")
 dofile(modpath .. "/api/shapes.lua")
+dofile(modpath .. "/api/mcl_formspec.lua")
 dofile(modpath .. "/api/registration.lua")
 dofile(modpath .. "/misc.lua")
 

@@ -17,6 +17,7 @@ read_globals = {
 
     -- mods
     "mesecon",
+    "mcl_formspec",
 }
 
 ignore = {
