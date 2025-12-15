@@ -17,3 +17,7 @@ fireworks_scan_radius (firework search radius) int 8
 fireworks_enable_crafting (Enable crafting recipes for fireworks) bool true
 
 # When disabled, fireworks cannot be crafted but can still be dyed with secondary colors
+
+fireworks_enable_mesecons (Enable fireworks to respond to redstone/mesecons signals) bool true
+
+# When enabled, fireworks will emit when triggered by redstone or mesecons power
