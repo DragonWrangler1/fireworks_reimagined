@@ -301,7 +301,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 		tiles = node_tiles,
 		groups = { cracky = 1, oddly_breakable_by_hand = 1 , firework = 1, 
 					handy = 1, axey = 1, material_wood = 1,
-					wood = 1, building_block = 1
+					building_block = 1
 		},
 		paramtype = "light",
 		paramtype2 = "color",
