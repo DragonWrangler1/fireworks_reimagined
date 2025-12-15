@@ -120,7 +120,7 @@ local function get_colored_tiles(primary_hex)
 		bottom_texture = "darkage_box.png"
 		side_texture = "darkage_box.png"
 	else
-		top_texture = "fireworks_box_top.png"
+		top_texture = "black.png"
 		bottom_texture = "black.png"
 		side_texture = "black.png"
 	end
