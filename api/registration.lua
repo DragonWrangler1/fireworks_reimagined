@@ -251,6 +251,9 @@ local color_palette = {
 	{name = "Green", hex = "#008000"},
 	{name = "Violet", hex = "#6600CC"},
 	{name = "Cyan", hex = "#00C0C0"},
+	{name = "Magenta", hex = "#FF00FF"},
+	{name = "Pink", hex = "#FF69B4"},
+	{name = "DarkGreen", hex = "#004D00"},
 }
 
 fireworks_reimagined.color_palette = color_palette
@@ -260,8 +263,8 @@ local function encode_colors(color1_idx, color2_idx)
 end
 
 local function decode_colors(param2)
-	local c1_idx = math.floor(param2 / 8) + 1
-	local c2_idx = (param2 % 8) + 1
+	local c1_idx = math.floor(param2 / 16) + 1
+	local c2_idx = (param2 % 16) + 1
 	return c1_idx, c2_idx
 end
 
@@ -310,7 +313,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 			local param2 = core.get_node(pos).param2
 			
 			local c1 = primary_color_hex
-			local c2_idx = (param2 % 8) + 1
+			local c2_idx = (param2 % 16) + 1
 			local c2 = get_color_by_index(c2_idx)
 			
 			local meta = core.get_meta(pos)
@@ -418,17 +421,17 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 							mesecon.receptor_off(pos, mesecon.rules.pplate)
 						end)
 					end
-				if core.get_modpath("mcl_redstone") and core.settings:get_bool("fireworks_enable_mesecons", true) then
+				if core.get_modpath("mcl_redstone") then
 					local current_node = core.get_node(pos)
-					local color_bits = current_node.param2 % 8
+					local color_bits = current_node.param2 % 16
 					mcl_redstone.swap_node(pos, {
 						name = current_node.name,
 						param1 = current_node.param1,
-						param2 = color_bits + 8
+						param2 = color_bits + 16
 					})
 					core.after(1, function()
 						local reset_node = core.get_node(pos)
-						local reset_color_bits = reset_node.param2 % 8
+						local reset_color_bits = reset_node.param2 % 16
 						mcl_redstone.swap_node(pos, {
 							name = reset_node.name,
 							param1 = reset_node.param1,
@@ -448,17 +451,17 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 							mesecon.receptor_off(pos, mesecon.rules.pplate)
 						end)
 					end
-				if core.get_modpath("mcl_redstone") and core.settings:get_bool("fireworks_enable_mesecons", true) then
+				if core.get_modpath("mcl_redstone") then
 					local current_node = core.get_node(pos)
-					local color_bits = current_node.param2 % 8
+					local color_bits = current_node.param2 % 16
 					mcl_redstone.swap_node(pos, {
 						name = current_node.name,
 						param1 = current_node.param1,
-						param2 = color_bits + 8
+						param2 = color_bits + 16
 					})
 					core.after(1, function()
 						local reset_node = core.get_node(pos)
-						local reset_color_bits = reset_node.param2 % 8
+						local reset_color_bits = reset_node.param2 % 16
 						mcl_redstone.swap_node(pos, {
 							name = reset_node.name,
 							param1 = reset_node.param1,
@@ -572,30 +575,28 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 					meta:set_int("powered", 1)
 					meta:set_int("emit_count", emit_count + 1)
 					
-					if core.settings:get_bool("fireworks_enable_mesecons", true) then
-						local color_bits = node.param2 % 8
+					local color_bits = node.param2 % 16
+					mcl_redstone.swap_node(pos, {
+						name = node.name,
+						param1 = node.param1,
+						param2 = color_bits + 16
+					})
+				
+					core.after(1, function()
+						local current_node = core.get_node(pos)
+						local current_color_bits = current_node.param2 % 16
 						mcl_redstone.swap_node(pos, {
-							name = node.name,
-							param1 = node.param1,
-							param2 = color_bits + 8
+							name = current_node.name,
+							param1 = current_node.param1,
+							param2 = current_color_bits
 						})
-					
-						core.after(1, function()
-							local current_node = core.get_node(pos)
-							local current_color_bits = current_node.param2 % 8
-							mcl_redstone.swap_node(pos, {
-								name = current_node.name,
-								param1 = current_node.param1,
-								param2 = current_color_bits
-							})
-						end)
-					end
+					end)
 				end
 				
 				meta:set_int("mcl_redstone_power", power)
 			end,
 			get_power = function(node, dir)
-				if node.param2 >= 8 then
+				if node.param2 >= 16 then
 					return 7
 				end
 				return 0
