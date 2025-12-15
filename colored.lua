@@ -22,6 +22,9 @@ if has_mcl_dyes then
 		Green = "mcl_dye:dark_green",
 		Violet = "mcl_dye:violet",
 		Cyan = "mcl_dye:cyan",
+		Magenta = "mcl_dye:magenta",
+		Pink = "mcl_dye:pink",
+		DarkGreen = "mcl_dye:dark_green",
 	}
 else
 	dye_map = {
@@ -33,6 +36,9 @@ else
 		Green = "dye:green",
 		Violet = "dye:violet",
 		Cyan = "dye:cyan",
+		Magenta = "dye:magenta",
+		Pink = "dye:pink",
+		DarkGreen = "dye:dark_green",
 	}
 end
 
@@ -176,22 +182,26 @@ for color_idx, color_def in ipairs(palette) do
 			local recipe = shape_recipes[shape_name]
 			if recipe then
 				local color_dye = dye_map[color_def.name]
-				local substituted_recipe = substitute_dye_in_recipe(recipe, color_dye)
-				core.register_craft({
-					output = "fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name,
-					recipe = substituted_recipe,
-				})
+				if color_dye then
+					local substituted_recipe = substitute_dye_in_recipe(recipe, color_dye)
+					core.register_craft({
+						output = "fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name,
+						recipe = substituted_recipe,
+					})
+				end
 			end
 		end
 		
 		for secondary_idx, secondary_def in ipairs(palette) do
 			local dye = dye_map[secondary_def.name]
 			
-			core.register_craft({
-				type = "shapeless",
-				output = core.itemstring_with_palette("fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name, secondary_idx - 1),
-				recipe = {"fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name, dye},
-			})
+			if dye then
+				core.register_craft({
+					type = "shapeless",
+					output = core.itemstring_with_palette("fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name, secondary_idx - 1),
+					recipe = {"fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name, dye},
+				})
+			end
 		end
 	end
 end
