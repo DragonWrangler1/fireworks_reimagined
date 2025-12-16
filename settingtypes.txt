@@ -21,3 +21,7 @@ fireworks_enable_crafting (Enable crafting recipes for fireworks) bool true
 fireworks_enable_mesecons (Enable fireworks to respond to redstone/mesecons signals) bool true
 
 # When enabled, fireworks will emit when triggered by redstone or mesecons power
+
+fireworks_manual_refill (Forces right-clicking a fireworks blocks every 9 activations as a manual "reload") bool true
+
+# When enabled, fireworks will require manual interaction once per 9 mesecon/redstone activations.
