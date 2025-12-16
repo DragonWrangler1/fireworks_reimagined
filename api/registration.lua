@@ -537,7 +537,9 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 					end
 
 					meta:set_int("busy_until", now + 1)
-					meta:set_int("emit_count", emit_count + 1)
+					if core.settings:get_bool("fireworks_manual_refill", true) then
+						meta:set_int("emit_count", emit_count + 1)
+					end
 
 					local c1 = meta:get_string("c1") or "#FFFFFF"
 					local c2 = meta:get_string("c2") or c1
@@ -582,7 +584,9 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 					launch_firework(pos, entity, shape, ip, c1, c2)
 					
 					meta:set_int("powered", 1)
-					meta:set_int("emit_count", emit_count + 1)
+					if core.settings:get_bool("fireworks_manual_refill", true) then
+						meta:set_int("emit_count", emit_count + 1)
+					end
 					
 					local color_bits = node.param2 % 16
 					mcl_redstone.swap_node(pos, {
