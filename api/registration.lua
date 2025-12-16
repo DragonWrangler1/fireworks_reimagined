@@ -79,15 +79,24 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 				local color = color_grid[y][x]
 				if color ~= "#000000" then
 					color_particles[color] = color_particles[color] or {}
-					local particle_pos = vector.add(pos, vector.new(
-						(x - (grid_width / 2)) * size_multiplier,
-						(y - (grid_height / 2)) * size_multiplier,
-						(z - (depth_layers / 2)) * size_multiplier
-					))
-					table.insert(color_particles[color], particle_pos)
 					
-					-- Count colors for dominant color detection
-					color_counts[color] = (color_counts[color] or 0) + 1
+					local pixel_offset = size_multiplier * 0.5
+					local offsets = {
+						{-pixel_offset * 0.5, -pixel_offset * 0.5, 0},
+						{pixel_offset * 0.5, -pixel_offset * 0.5, 0},
+						{-pixel_offset * 0.5, pixel_offset * 0.5, 0},
+						{pixel_offset * 0.5, pixel_offset * 0.5, 0},
+					}
+					
+					for _, offset in ipairs(offsets) do
+						local particle_pos = vector.add(pos, vector.new(
+							(x - (grid_width / 2)) * size_multiplier + offset[1],
+							(y - (grid_height / 2)) * size_multiplier + offset[2],
+							(z - (depth_layers / 2)) * size_multiplier + offset[3]
+						))
+						table.insert(color_particles[color], particle_pos)
+						color_counts[color] = (color_counts[color] or 0) + 1
+					end
 				end
 			end
 		end
