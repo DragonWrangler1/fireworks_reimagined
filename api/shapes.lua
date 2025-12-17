@@ -332,7 +332,7 @@ local function spawn_burst_shape(pos, radius, size, glow, eligible_players, colo
 				core.add_particlespawner(props)
 			end
 		else
-			core.after(0.75, function()
+			core.after(0.25, function()
 				for _, player_name in ipairs(eligible_players) do
 					props.playername = player_name
 					core.add_particlespawner(props)
@@ -343,54 +343,79 @@ local function spawn_burst_shape(pos, radius, size, glow, eligible_players, colo
 end
 
 local function spawn_chaotic_shape(pos, radius, size, glow, eligible_players, color_def, color_def_2, explosion_colors, alpha, texture, spawn_colored_particle_func)
-	local total_particles = math.random(250, 350)
-	local chaos_type = math.random(1, 5)
-	
-	if chaos_type == 1 then
-		for i = 1, total_particles do
-			local angle = math.random() * math.pi * 2
-			local tilt = math.random() * math.pi
-			local speed = math.random(2, 10)
-			local vx = math.cos(angle) * math.sin(tilt) * speed
-			local vy = math.cos(tilt) * speed + math.random(-4, 4)
-			local vz = math.sin(angle) * math.sin(tilt) * speed
-			spawn_colored_particle_func({x = vx, y = vy, z = vz})
+	local base_props = {
+		amount = 1200,
+		time = 0.1,
+		pos = pos,
+
+		-- wildly inconsistent particle sizes
+		radius = {
+			min = 0.5,
+			max = 9.5,
+			bias = 9000,
+		},
+
+		-- drag that *increases then suddenly releases*
+		drag_tween = {
+			{ x = -0.2, y = -0.2, z = -0.2 },
+			{ x = 6.0, y = -0.1, z = 6.0 },
+			{ x = 0.8, y = 0.8, z = 0.8 },
+		},
+
+		-- strong velocity randomness with upward spikes
+		minvel = { x= -4 , y= -5, z= -4},
+		maxvel = { x=4, y=22, z=4},
+
+		-- chaotic multi-force attraction
+		attract = {
+			kind = "point",
+			strength = {
+				min = -90.0,
+				max = 80.0, -- allows sudden repulsion
+			},
+			origin = pos,
+			direction = vector.new(
+				math.random(-1, 1),
+				math.random(-1, 1),
+				math.random(-1, 1)
+			),
+		},
+
+		-- gravity + extra instability
+		acc = {
+			x = math.random(4, 4),
+			y = -28 + math.random(6, 10),
+			z = math.random(4, 4),
+		},
+
+		-- collisions off for pure chaos flow
+		collisiondetection = false,
+		collision_removal = false,
+
+		glow = 14,
+	}
+
+
+	local variations = fireworks_reimagined.get_particle_variations(color_def, color_def_2, alpha)
+
+	for _, key in ipairs({"spark_props", "break_props1", "break_props"}) do
+		local props = table.copy(base_props)
+		for k,v in pairs(variations[key]) do
+			props[k] = v
 		end
-	elseif chaos_type == 2 then
-		for i = 1, total_particles do
-			local r = math.random() * radius * 2
-			local angle = math.random() * math.pi * 2
-			local vx = math.cos(angle) * r + math.random(-8, 8)
-			local vy = math.random(-10, 10)
-			local vz = math.sin(angle) * r + math.random(-8, 8)
-			spawn_colored_particle_func({x = vx, y = vy, z = vz})
-		end
-	elseif chaos_type == 3 then
-		local waves = math.random(8, 15)
-		for wave = 1, waves do
-			core.after(math.random(0, 300) / 1000, function()
-				local particles_this_wave = math.floor(total_particles / waves)
-				for i = 1, particles_this_wave do
-					local vx = (math.random() - 0.5) * math.random(4, 12)
-					local vy = (math.random() - 0.5) * math.random(4, 12)
-					local vz = (math.random() - 0.5) * math.random(4, 12)
-					spawn_colored_particle_func({x = vx, y = vy, z = vz})
+
+		if key == "spark_props" then
+			for _, player_name in ipairs(eligible_players) do
+				props.playername = player_name
+				core.add_particlespawner(props)
+			end
+		else
+			core.after(0.25, function()
+				for _, player_name in ipairs(eligible_players) do
+					props.playername = player_name
+					core.add_particlespawner(props)
 				end
 			end)
-		end
-	elseif chaos_type == 4 then
-		for i = 1, total_particles do
-			local fx = math.sin(i * 0.01) * 10
-			local fy = math.cos(i * 0.02) * 10 + math.random(-5, 10)
-			local fz = math.sin(i * 0.015) * 10
-			spawn_colored_particle_func({x = fx, y = fy, z = fz})
-		end
-	else
-		for i = 1, total_particles do
-			local vx = (math.random() * 2 - 1) * math.random(1, 12)
-			local vy = (math.random() * 2 - 1) * math.random(1, 12)
-			local vz = (math.random() * 2 - 1) * math.random(1, 12)
-			spawn_colored_particle_func({x = vx, y = vy, z = vz})
 		end
 	end
 end
