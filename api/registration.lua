@@ -383,12 +383,17 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 		end,
 		on_rightclick = function(pos, node, clicker)
 			local meta = core.get_meta(pos)
+			local now = core.get_gametime()
 			local owner = meta:get_string("owner")
 			local player_name = clicker:get_player_name()
 			local privs = core.get_player_privs(player_name)
 			local is_owner = player_name == owner or privs.fireworks_master or privs.fireworks_admin
 			local allow_others = meta:get_string("allow_others") == "true"
 			local is_allowed = is_owner or allow_others or privs.fireworks_master or privs.fireworks_admin
+			local inv = meta:get_inventory()
+			if inv:is_empty("fuse") then
+				inv:set_size("fuse", 1)
+			end
 			local function is_valid_hex(color)
 			-- Accepts #RGB or #RRGGBB
 			return type(color) == "string"
@@ -405,12 +410,12 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				meta:set_string("owner", player_name)
 			end
 
+			local prev_emit_count = meta:get_int("emit_count")
 			meta:set_int("emit_count", 0)
-
-			local inv = meta:get_inventory()
-			if inv:is_empty("fuse") then
-				inv:set_size("fuse", 1)
+			if prev_emit_count >= 10 then
+				meta:set_string("infotext", "")
 			end
+
 			local fuse_stack = inv:get_stack("fuse", 1)
 			local fuse_count = fuse_stack:get_count()
 			local delay
@@ -422,6 +427,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 
 			if is_allowed and (can_activate(pos)) then
 				inv:set_stack("fuse", 1, nil)
+				meta:set_int("busy_until", now + delay + 1)
 				core.after(delay, function()
 					launch_firework(pos, entity, shape, ip, c1, c2)
 					if core.get_modpath("mesecons") then
@@ -432,26 +438,31 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 					end
 				if core.get_modpath("mcl_redstone") then
 					local current_node = core.get_node(pos)
-					local color_bits = current_node.param2 % 16
-					mcl_redstone.swap_node(pos, {
-						name = current_node.name,
-						param1 = current_node.param1,
-						param2 = color_bits + 16
-					})
-					core.after(1, function()
-						local reset_node = core.get_node(pos)
-						local reset_color_bits = reset_node.param2 % 16
+					if core.get_item_group(current_node.name, "firework") == 1 then
+						local color_bits = current_node.param2 % 16
 						mcl_redstone.swap_node(pos, {
-							name = reset_node.name,
-							param1 = reset_node.param1,
-							param2 = reset_color_bits
+							name = current_node.name,
+							param1 = current_node.param1,
+							param2 = color_bits + 16
 						})
-					end)
+						core.after(1, function()
+							local reset_node = core.get_node(pos)
+							if core.get_item_group(reset_node.name, "firework") == 1 then
+								local reset_color_bits = reset_node.param2 % 16
+								mcl_redstone.swap_node(pos, {
+									name = reset_node.name,
+									param1 = reset_node.param1,
+									param2 = reset_color_bits
+								})
+							end
+						end)
+					end
 				end
 				end)
 			elseif not is_allowed then
 				core.chat_send_player(player_name, "You don't have permission to launch this firework.")
 			elseif privs.fireworks_master or privs.fireworks_admin then
+				meta:set_int("busy_until", now + delay + 1)
 				core.after(delay, function()
 					launch_firework(pos, entity, shape, ip, c1, c2)
 					if core.get_modpath("mesecons") then
@@ -462,21 +473,25 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 					end
 				if core.get_modpath("mcl_redstone") then
 					local current_node = core.get_node(pos)
-					local color_bits = current_node.param2 % 16
-					mcl_redstone.swap_node(pos, {
-						name = current_node.name,
-						param1 = current_node.param1,
-						param2 = color_bits + 16
-					})
-					core.after(1, function()
-						local reset_node = core.get_node(pos)
-						local reset_color_bits = reset_node.param2 % 16
+					if core.get_item_group(current_node.name, "firework") == 1 then
+						local color_bits = current_node.param2 % 16
 						mcl_redstone.swap_node(pos, {
-							name = reset_node.name,
-							param1 = reset_node.param1,
-							param2 = reset_color_bits
+							name = current_node.name,
+							param1 = current_node.param1,
+							param2 = color_bits + 16
 						})
-					end)
+						core.after(1, function()
+							local reset_node = core.get_node(pos)
+							if core.get_item_group(reset_node.name, "firework") == 1 then
+								local reset_color_bits = reset_node.param2 % 16
+								mcl_redstone.swap_node(pos, {
+									name = reset_node.name,
+									param1 = reset_node.param1,
+									param2 = reset_color_bits
+								})
+							end
+						end)
+					end
 				end
 					inv:set_stack("fuse", 1, nil)
 				end)
@@ -505,6 +520,18 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 			end
 			return 0
 		end,
+		on_dig = function(pos, node, digger)
+			local meta = core.get_meta(pos)
+			local inv = meta:get_inventory()
+			if not inv:is_empty("fuse") then
+				local fuse_stack = inv:get_stack("fuse", 1)
+				local fuse_count = fuse_stack:get_count()
+				if fuse_count > 0 then
+					core.item_drop(fuse_stack, digger, pos)
+				end
+			end
+			return core.node_dig(pos, node, digger)
+		end,
 	}
 	
 	if options.on_punch then node_def.on_punch = options.on_punch end
@@ -524,34 +551,51 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 
 					-- Timestamp lock (1 second)
 					if meta:get_int("busy_until") > now then
-						return
+						return false
 					end
 
 					if not can_activate(pos) then
-						return
+						return false
 					end
 
 					local emit_count = meta:get_int("emit_count")
 					if emit_count >= 10 then
-						return
+						meta:set_string("infotext", "Right-click to resume mesecons usage")
+						return false
 					end
 
-					meta:set_int("busy_until", now + 1)
+					local inv = meta:get_inventory()
+					if inv:is_empty("fuse") then
+						inv:set_size("fuse", 1)
+					end
+
+					local fuse_stack = inv:get_stack("fuse", 1)
+					local fuse_count = fuse_stack:get_count()
+					if fuse_count > 0 then
+						inv:set_stack("fuse", 1, nil)
+					end
+					meta:set_int("delay", fuse_count or 0)
+					-- Should Never be nil... Theoretically.
+					local delay = meta:get_int("delay") or 0
 					if core.settings:get_bool("fireworks_manual_refill", true) then
 						meta:set_int("emit_count", emit_count + 1)
 					end
 
 					local c1 = meta:get_string("c1") or "#FFFFFF"
 					local c2 = meta:get_string("c2") or c1
+					
+					meta:set_int("busy_until", now + delay + 1)
 
-					launch_firework(pos, entity, shape, ip, c1, c2)
-					if core.settings:get_bool("fireworks_enable_mesecons", true) then
-						-- Output a short mesecon pulse
-						mesecon.receptor_on(pos, mesecon.rules.pplate)
-						core.after(1, function()
-							mesecon.receptor_off(pos, mesecon.rules.pplate)
-						end)
-					end
+					core.after(delay, function()
+						launch_firework(pos, entity, shape, ip, c1, c2)
+						if core.settings:get_bool("fireworks_enable_mesecons", true) then
+							-- Output a short mesecon pulse
+							mesecon.receptor_on(pos, mesecon.rules.pplate)
+							core.after(1, function()
+								mesecon.receptor_off(pos, mesecon.rules.pplate)
+							end)
+						end
+					end)
 				end,
 			},
 		}
@@ -574,36 +618,55 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 					
 					local emit_count = meta:get_int("emit_count")
 					if emit_count >= 10 then
+						meta:set_string("infotext", "Right-click to resume mesecons usage")
 						meta:set_int("mcl_redstone_power", power)
 						return
+					end
+					
+					local inv = meta:get_inventory()
+					if inv:is_empty("fuse") then
+						inv:set_size("fuse", 1)
+					end
+					
+					local fuse_stack = inv:get_stack("fuse", 1)
+					local fuse_count = fuse_stack:get_count()
+					local delay = fuse_count
+					if fuse_count > 0 then
+						inv:set_stack("fuse", 1, nil)
 					end
 					
 					local c1 = meta:get_string("c1") or "#FFFFFF"
 					local c2 = meta:get_string("c2") or c1
 					
-					launch_firework(pos, entity, shape, ip, c1, c2)
+					core.after(delay, function()
+						launch_firework(pos, entity, shape, ip, c1, c2)
+					end)
 					
 					meta:set_int("powered", 1)
 					if core.settings:get_bool("fireworks_manual_refill", true) then
 						meta:set_int("emit_count", emit_count + 1)
 					end
 					
-					local color_bits = node.param2 % 16
-					mcl_redstone.swap_node(pos, {
-						name = node.name,
-						param1 = node.param1,
-						param2 = color_bits + 16
-					})
-				
-					core.after(1, function()
-						local current_node = core.get_node(pos)
-						local current_color_bits = current_node.param2 % 16
+					if core.get_item_group(node.name, "firework") == 1 then
+						local color_bits = node.param2 % 16
 						mcl_redstone.swap_node(pos, {
-							name = current_node.name,
-							param1 = current_node.param1,
-							param2 = current_color_bits
+							name = node.name,
+							param1 = node.param1,
+							param2 = color_bits + 16
 						})
-					end)
+					
+						core.after(1, function()
+							local current_node = core.get_node(pos)
+							if core.get_item_group(current_node.name, "firework") == 1 then
+								local current_color_bits = current_node.param2 % 16
+								mcl_redstone.swap_node(pos, {
+									name = current_node.name,
+									param1 = current_node.param1,
+									param2 = current_color_bits
+								})
+							end
+						end)
+					end
 				end
 				
 				meta:set_int("mcl_redstone_power", power)
