@@ -49,14 +49,14 @@ local shape_recipes = {
 		{stick_item, "COLOR_DYE", stick_item},
 	},
 	star = {
-		{"", stick_item, ""},
+		{"COLOR_DYE", stick_item, "COLOR_DYE"},
 		{stick_item, tnt_item, stick_item},
-		{"", stick_item, ""},
+		{"COLOR_DYE", stick_item, "COLOR_DYE"},
 	},
 	ring = {
-		{stick_item, stick_item, stick_item},
 		{stick_item, tnt_item, stick_item},
-		{stick_item, stick_item, stick_item},
+		{tnt_item, "COLOR_DYE", tnt_item},
+		{stick_item, tnt_item, stick_item},
 	},
 	burst = {
 		{"COLOR_DYE", "COLOR_DYE", "COLOR_DYE"},
@@ -85,7 +85,7 @@ local shape_recipes = {
 	},
 	hour_glass = {
 		{stick_item, stick_item, stick_item},
-		{"", tnt_item, ""},
+		{"COLOR_DYE", tnt_item, "COLOR_DYE"},
 		{stick_item, stick_item, stick_item},
 	},
 }
