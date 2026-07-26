@@ -13,3 +13,5 @@ dofile(modpath .. "/misc.lua")
 
 dofile(modpath .. "/colored.lua")
 dofile(modpath .. "/images.lua")
+
+minetest.register_alias("fireworks_reimagined:firework_2025", "fireworks_reimagined:firework_year")
