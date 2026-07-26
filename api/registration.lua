@@ -1,6 +1,6 @@
 local registered_fireworks = {}
-local default_max_fireworks = tonumber(core.settings:get("fireworks_max_rockets")) or 5
-local default_scan_radius = tonumber(core.settings:get("fireworks_scan_radius")) or 8
+local default_max_fireworks = tonumber(core.settings:get("fireworks_max_rockets")) or 2
+local default_scan_radius = tonumber(core.settings:get("fireworks_scan_radius")) or 12
 
 local function can_activate(pos, radius, max_fireworks)
 	radius = radius or default_scan_radius
@@ -507,7 +507,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				end)
 			elseif not is_allowed then
 				core.chat_send_player(player_name, "You don't have permission to launch this firework.")
-			elseif privs.fireworks_master or privs.fireworks_admin then
+			elseif (privs.fireworks_master or privs.fireworks_admin) and (can_activate(pos)) then
 				meta:set_int("busy_until", now + delay + 1)
 				core.after(delay, function()
 					launch_firework(pos, entity, shape, ip, c1, c2)
