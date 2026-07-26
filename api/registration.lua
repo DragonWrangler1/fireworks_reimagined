@@ -60,7 +60,7 @@ local function launch_firework(pos, entity, shape, ip, c1, c2)
 end
 
 function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid, depth_layers, texture, batch_size, log)
-	
+
 	local grid_width = #color_grid[1]
 	local grid_height = #color_grid
 	local size_multiplier = 2.2
@@ -68,18 +68,18 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 	local radius = math.max(grid_width, grid_height) * size_multiplier * 0.8
 	local b_size = batch_size or 1
 	local color_particles = {}
-	
+
 	-- Extract dominant colors from the grid for effects
 	local dominant_colors = {}
 	local color_counts = {}
-	
+
 	for z = 0, depth_layers do
 		for y = 1, grid_height do
 			for x = 1, grid_width do
 				local color = color_grid[y][x]
 				if color ~= "#000000" then
 					color_particles[color] = color_particles[color] or {}
-					
+
 					local pixel_offset = size_multiplier * 0.5
 					local offsets = {
 						{-pixel_offset * 0.5, -pixel_offset * 0.5, 0},
@@ -87,7 +87,7 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 						{-pixel_offset * 0.5, pixel_offset * 0.5, 0},
 						{pixel_offset * 0.5, pixel_offset * 0.5, 0},
 					}
-					
+
 					for _, offset in ipairs(offsets) do
 						local particle_pos = vector.add(pos, vector.new(
 							(x - (grid_width / 2)) * size_multiplier + offset[1],
@@ -101,19 +101,19 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 			end
 		end
 	end
-	
+
 	-- Find the most dominant colors for effects
 	local sorted_colors = {}
 	for color, count in pairs(color_counts) do
 		table.insert(sorted_colors, {color = color, count = count})
 	end
 	table.sort(sorted_colors, function(a, b) return a.count > b.count end)
-	
+
 	local primary_color = sorted_colors[1] and sorted_colors[1].color or "#FFFFFF"
 	local secondary_color = sorted_colors[2] and sorted_colors[2].color or primary_color
 	local tertiary_color = sorted_colors[3] and sorted_colors[3].color or secondary_color
 	local total_spawners = 0
-	
+
 	-- ===== STAGE 1: INITIAL FLASH AND CORE IGNITION =====
 	core.after(delay * 0.5, function()
 		core.add_particle({
@@ -137,7 +137,7 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 		})
 		total_spawners = total_spawners + 1
 	end)
-	
+
 	-- ===== STAGE 2: PRIMARY GRID EXPLOSION =====
 	core.after(delay, function()
 		for color, positions in pairs(color_particles) do
@@ -161,7 +161,7 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 						math.max(world_maxpos.z, pos_item.z)
 					)
 				end
-				
+
 				local particle_properties = {
 					pos = world_minpos,
 					velocity = {x = math.random(-8,8), y = 3, z = math.random(-9, 9)},
@@ -192,13 +192,13 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 					glow = math.random(13, 16),
 					drag = vector.new(0.04, 0.02, 0.04),
 				}
-				
+
 				core.add_particle(particle_properties)
 				total_spawners = total_spawners + 1
 			end
 		end
 	end)
-	
+
 	-- ===== STAGE 3: ATMOSPHERIC PRESSURE WAVES =====
 	-- Multi-ring pressure wave system
 	local wave_rings = 4
@@ -206,7 +206,7 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 		core.after(delay + 0.05 + (ring * 0.12), function()
 			local wave_radius = radius * (1.5 + ring * 1.2)
 			local wave_particles = math.floor(60 - ring * 10)
-			
+
 			for i = 1, wave_particles do
 				local wave_angle = (i / wave_particles) * math.pi * 2
 				local wave_pos = {
@@ -214,7 +214,7 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 					y = pos.y + math.random(-3, 3),
 					z = pos.z + math.sin(wave_angle) * wave_radius
 				}
-				
+
 				core.add_particle({
 					pos = wave_pos,
 					velocity = {
@@ -242,7 +242,7 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 			end
 		end)
 	end
-	
+
 	-- Performance tracking
 	if log == true then
 		core.after(6.0, function()
@@ -288,27 +288,73 @@ fireworks_reimagined.encode_colors = encode_colors
 fireworks_reimagined.decode_colors = decode_colors
 fireworks_reimagined.get_color_by_index = get_color_by_index
 
+local known_shapes = {"sphere", "star", "ring", "burst", "spiral", "chaotic", "flame", "snowflake", "hour_glass"}
+
 function fireworks_reimagined.register_firework_node(tiles, shape, entity, cooldown, mese_cooldown, ip, options)
 	options = options or {}
 	core.register_alias("fireworks_reimagined:firework_" .. shape .. "_0", "fireworks_reimagined:firework_" .. shape)
 	core.register_alias("fireworks_reimagined:firework_" .. shape .. "_10", "fireworks_reimagined:firework_" .. shape)
-	
+
 	local primary_color_idx = options.primary_color or 1
 	local primary_color_hex = get_color_by_index(primary_color_idx)
-	
+
 	local node_tiles
 	if options.tiles then
 		node_tiles = options.tiles
 	elseif tiles then
-		node_tiles = type(tiles) == "string" and { tiles } or tiles
+		node_tiles = type(tiles) == "string" and { tiles, tiles, tiles, tiles, tiles, tiles } or tiles
 	else
-		node_tiles = { "black.png^fireworks_overlay_1.png^fireworks_overlay_2.png" }
+		node_tiles = { "black.png", "black.png", "black.png^fireworks_overlay_1.png^fireworks_overlay_2.png", "black.png^fireworks_overlay_1.png^fireworks_overlay_2.png", "black.png^fireworks_overlay_1.png^fireworks_overlay_2.png", "black.png^fireworks_overlay_1.png^fireworks_overlay_2.png" }
 	end
-	
+
+	-- Ensure 64x64 and add shape icon
+	-- Automatically determine the base shape icon from the shape/node name
+	local icon_overlay = options.icon_overlay
+	if not icon_overlay then
+		for _, s in ipairs(known_shapes) do
+			if shape:find(s) then
+				icon_overlay = s
+				break
+			end
+		end
+	end
+	-- If it's still nil, or if it was explicitly set to false, don't add icon
+	icon_overlay = icon_overlay or nil
+
+	for i = 1, #node_tiles do
+		local tile = node_tiles[i]
+		local tile_name = type(tile) == "string" and tile or tile.name
+
+		-- Resize logic (always do 64x64)
+		if type(tile) == "string" then
+			if not tile:find("%[resize:64x64") then
+				node_tiles[i] = tile .. "^[resize:64x64"
+			end
+		elseif type(tile) == "table" and tile.name then
+			if not tile.name:find("%[resize:64x64") then
+				tile.name = tile.name .. "^[resize:64x64"
+			end
+		end
+
+		-- Overlay logic
+		if icon_overlay then
+			local icon = "fireworks_overlay_" .. icon_overlay .. ".png"
+			if not tile_name:find(icon) then
+				if i >= 3 then
+					if type(tile) == "string" then
+						node_tiles[i] = node_tiles[i] .. "^(" .. icon .. "^[resize:64x64^[colorize:" .. primary_color_hex .. ":100)"
+					elseif type(tile) == "table" and tile.name then
+						tile.name = tile.name .. "^(" .. icon .. "^[resize:64x64^[colorize:" .. primary_color_hex .. ":100)"
+					end
+				end
+			end
+		end
+	end
+
 	local node_def = {
-		description = options.description or ("Firework (" .. shape .. ")"),
+		description = options.description or (shape:gsub("(%a)([%w]*)", function(a,b) return a:upper() .. b end):gsub("_", " ") .. " Fireworks"),
 		tiles = node_tiles,
-		groups = { cracky = 1, oddly_breakable_by_hand = 1 , firework = 1, 
+		groups = { cracky = 1, oddly_breakable_by_hand = 1 , firework = 1,
 					handy = 1, axey = 1, material_wood = 1,
 					building_block = 1
 		},
@@ -320,11 +366,11 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 		_mcl_hardness = 1,
 		after_place_node = function(pos, placer, itemstack, pointed_thing)
 			local param2 = core.get_node(pos).param2
-			
+
 			local c1 = primary_color_hex
 			local c2_idx = (param2 % 16) + 1
 			local c2 = get_color_by_index(c2_idx)
-			
+
 			local meta = core.get_meta(pos)
 			meta:set_string("allow_others", "false")
 			meta:set_string("owner", placer:get_player_name())
@@ -343,10 +389,10 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				if inv:is_empty("fuse") then
 					inv:set_size("fuse", 1)
 				end
-				
+
 				local has_mcl = core.get_modpath("mcl_core") ~= nil
 				local has_mcl_formspec = core.get_modpath("mcl_formspec") ~= nil
-				
+
 				if is_owner then
 					local formspec
 					if has_mcl and has_mcl_formspec then
@@ -533,13 +579,13 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 			return core.node_dig(pos, node, digger)
 		end,
 	}
-	
+
 	if options.on_punch then node_def.on_punch = options.on_punch end
 	if options.on_rightclick then node_def.on_rightclick = options.on_rightclick end
 	if options.on_dig then node_def.on_dig = options.on_dig end
 	if options.on_place then node_def.on_place = options.on_place end
 	if options.overlay_tiles then node_def.overlay_tiles = options.overlay_tiles end
-	
+
 	if core.get_modpath("mesecons") then
 		node_def.mesecons = {
 			effector = {
@@ -583,7 +629,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 
 					local c1 = meta:get_string("c1") or "#FFFFFF"
 					local c2 = meta:get_string("c2") or c1
-					
+
 					meta:set_int("busy_until", now + delay + 1)
 
 					core.after(delay, function()
@@ -601,7 +647,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 		}
 	end
 
-	
+
 	if core.get_modpath("mcl_redstone") then
 		node_def._mcl_redstone = {
 			connects_to = function(node, dir)
@@ -611,42 +657,42 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				local meta = core.get_meta(pos)
 				local power = mcl_redstone.get_power(pos)
 				local prev_power = meta:get_int("mcl_redstone_power")
-				
+
 				if power > 0 and prev_power == 0 and can_activate(pos) then
 					--if not core.settings:get_bool("fireworks_enable_mesecons", true) then
 					--end
-					
+
 					local emit_count = meta:get_int("emit_count")
 					if emit_count >= 10 then
 						meta:set_string("infotext", "Right-click to resume mesecons usage")
 						meta:set_int("mcl_redstone_power", power)
 						return
 					end
-					
+
 					local inv = meta:get_inventory()
 					if inv:is_empty("fuse") then
 						inv:set_size("fuse", 1)
 					end
-					
+
 					local fuse_stack = inv:get_stack("fuse", 1)
 					local fuse_count = fuse_stack:get_count()
 					local delay = fuse_count
 					if fuse_count > 0 then
 						inv:set_stack("fuse", 1, nil)
 					end
-					
+
 					local c1 = meta:get_string("c1") or "#FFFFFF"
 					local c2 = meta:get_string("c2") or c1
-					
+
 					core.after(delay, function()
 						launch_firework(pos, entity, shape, ip, c1, c2)
 					end)
-					
+
 					meta:set_int("powered", 1)
 					if core.settings:get_bool("fireworks_manual_refill", true) then
 						meta:set_int("emit_count", emit_count + 1)
 					end
-					
+
 					if core.get_item_group(node.name, "firework") == 1 then
 						local color_bits = node.param2 % 16
 						mcl_redstone.swap_node(pos, {
@@ -654,7 +700,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 							param1 = node.param1,
 							param2 = color_bits + 16
 						})
-					
+
 						core.after(1, function()
 							local current_node = core.get_node(pos)
 							if core.get_item_group(current_node.name, "firework") == 1 then
@@ -668,7 +714,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 						end)
 					end
 				end
-				
+
 				meta:set_int("mcl_redstone_power", power)
 			end,
 			get_power = function(node, dir)
@@ -679,36 +725,36 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 			end,
 		}
 	end
-	
+
 	core.register_node(":fireworks_reimagined:firework_" .. shape, node_def)
 end
 
 core.register_on_player_receive_fields(function(player, formname, fields)
 	if not formname:match("fireworks_reimagined:settings_") then return end
-	
+
 	local pos_str = formname:match("fireworks_reimagined:settings_(.+)")
 	if not pos_str then return true end
-	
+
 	local pos = core.string_to_pos(pos_str)
 	if not pos then return true end
 
 	local node_name = core.get_node(pos).name
 	-- is the firework node still around?
 	if core.get_item_group(node_name, "firework") ~= 1 then return true end
-	
+
 	local meta = core.get_meta(pos)
 	local player_name = player:get_player_name()
 	local owner = meta:get_string("owner")
 	local privs = core.get_player_privs(player_name)
 	local is_owner = player_name == owner or privs.fireworks_master or privs.fireworks_admin
-	
+
 	if not is_owner then return true end
 
 	-- checkbox values will only be submittet when changed -> not in the save-event
 	if fields.allow_others ~= nil then
 		meta:set_string("allow_others", fields.allow_others)
 	end
-	
+
 	if (fields.save or fields.quit or fields.cancel) then
 		if privs.fireworks_admin and fields.delay and fields.delay ~= "" then
 			local delay = tonumber(fields.delay) or 0
@@ -757,7 +803,7 @@ function fireworks_reimagined.register_firework_entity(name, def)
 				self.time_remaining = self.time_remaining * 2
 			else
 				self.velocity = 0
-			end	
+			end
 		end,
 		collision = function(self)
 			local pos = self.object:get_pos()
@@ -781,7 +827,7 @@ function fireworks_reimagined.register_firework_entity(name, def)
 				if self.yaw > math.pi*2 then
 					self.yaw = self.yaw - (math.pi*2)
 				end
-			end		
+			end
 			local collide_values = self.collision(self)
 			local c_x = collide_values[1]
 			local c_z = collide_values[2]
@@ -794,7 +840,7 @@ function fireworks_reimagined.register_firework_entity(name, def)
 			end
 			if self.spiral == true then
 				if gravity == -10 then
-					self.object:set_acceleration({x=(x - vel.x + c_x)*self.acceleration,y=-10,z=(z - vel.z + c_z)*self.acceleration})				
+					self.object:set_acceleration({x=(x - vel.x + c_x)*self.acceleration,y=-10,z=(z - vel.z + c_z)*self.acceleration})
 				else
 					self.object:set_acceleration({x=(x - vel.x + c_x)*self.acceleration,y=(gravity-vel.y)*self.acceleration,z=(z - vel.z + c_z)*self.acceleration})
 				end
@@ -805,11 +851,11 @@ function fireworks_reimagined.register_firework_entity(name, def)
 		on_step = function(self, dtime)
 			local pos = self.object:get_pos()
 			if not pos then return end
-			
+
 			local velocity = self.object:get_velocity()
-			
+
 			local entity_type = self.spiral and "spiral" or "default"
-			
+
 			self.movement(self)
 			pos.y = pos.y + (self.initial_properties.velocity * dtime)
 			self.time_remaining = self.time_remaining - dtime
@@ -817,12 +863,12 @@ function fireworks_reimagined.register_firework_entity(name, def)
 				local colors = {}
 				if self.color1 then table.insert(colors, self.color1) end
 				if self.color2 then table.insert(colors, self.color2) end
-				
+
 				def.firework_explosion(pos, self.color1, self.color2)
-				
+
 				fireworks_reimagined.create_explosion_finale_effects(pos, self.firework_shape, colors)
 				fireworks_reimagined.create_explosion_sound_effects(pos, self.firework_shape)
-				
+
 				self.object:remove()
 			end
 		end,

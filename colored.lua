@@ -108,9 +108,9 @@ end
 local function get_colored_tiles(primary_hex)
 	local has_darkage = core.get_modpath("darkage") ~= nil
 	local has_mcl_barrels = core.get_modpath("mcl_barrels") ~= nil
-	
+
 	local top_texture, bottom_texture, side_texture
-	
+
 	if has_mcl then
 		top_texture = "mcl_fireworks_box_top.png"
 		bottom_texture = has_mcl_barrels and "mcl_barrels_barrel_bottom.png" or "black.png"
@@ -124,9 +124,9 @@ local function get_colored_tiles(primary_hex)
 		bottom_texture = "black.png"
 		side_texture = "black.png"
 	end
-	
+
 	local overlay2_with_color = side_texture .. "^(fireworks_overlay_2.png^[colorize:" .. primary_hex .. ":100)"
-	
+
 	return {
 		{name = top_texture, color = "white"},
 		{name = bottom_texture, color = "white"},
@@ -152,10 +152,10 @@ local enable_crafting = core.settings:get_bool("fireworks_enable_crafting", true
 
 for color_idx, color_def in ipairs(palette) do
 	local color_name = color_def.name:lower()
-	
+
 	for _, shape_name in ipairs(shapes) do
 		local entity_name = "fireworks_reimagined:" .. color_name .. "_" .. shape_name .. "_firework_entity"
-		
+
 		fireworks_reimagined.register_firework_entity(entity_name, {
 			firework_explosion = function(pos, color1, color2)
 				fireworks_reimagined.spawn_firework_explosion(pos, shape_name, nil, color1, color2, "255", nil, nil)
@@ -165,19 +165,18 @@ for color_idx, color_def in ipairs(palette) do
 			end
 		})
 	end
-	
+
 	for _, shape_name in ipairs(shapes) do
 		local node_name = color_name .. "_" .. shape_name
-		
+
 		local reg_options = {
 			primary_color = color_idx,
-			description = "Firework (" .. color_name .. " " .. shape_name .. ")",
-			tiles = get_colored_tiles(color_def.hex),
+			description = shape_name:gsub("(%a)([%w]*)", function(a,b) return a:upper() .. b end):gsub("_", " ") .. " Fireworks (" .. color_name .. ")",
 			overlay_tiles = get_overlay_tiles(),
 		}
-		
-		fireworks_reimagined.register_firework_node(nil, node_name, "fireworks_reimagined:" .. color_name .. "_" .. shape_name .. "_firework_entity", nil, nil, true, reg_options)
-		
+
+		fireworks_reimagined.register_firework_node(get_colored_tiles(color_def.hex), node_name, "fireworks_reimagined:" .. color_name .. "_" .. shape_name .. "_firework_entity", nil, nil, true, reg_options)
+
 		if enable_crafting then
 			local recipe = shape_recipes[shape_name]
 			if recipe then
@@ -191,10 +190,10 @@ for color_idx, color_def in ipairs(palette) do
 				end
 			end
 		end
-		
+
 		for secondary_idx, secondary_def in ipairs(palette) do
 			local dye = dye_map[secondary_def.name]
-			
+
 			if dye then
 				core.register_craft({
 					type = "shapeless",
@@ -227,7 +226,7 @@ end
 local non_existent_shapes = {"cube", "present", "christmas_tree"}
 for _, shape_name in ipairs(non_existent_shapes) do
 	core.register_alias("fireworks_reimagined:firework_" .. shape_name, "fireworks_reimagined:firework_white_burst")
-	
+
 	for _, color_def in ipairs(palette) do
 		local color_name = color_def.name:lower()
 		core.register_alias("fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name, "fireworks_reimagined:firework_white_burst")
