@@ -1,23 +1,27 @@
 # Fireworks Reimagined Settings
 
-fireworks_max_rockets (Max number of rockets above a firework spawner) int 2
+# Maximum number of rockets allowed above a firework spawner.
+# Use this to prevent particle spam from too many rockets in one area.
+fireworks_max_rockets (Max number of rockets above a firework spawner) int 2 0 100
 
-# amount of rockets allowed in a region above any fireworks spawner.
-# if the treshold is reached, the spawner will refuse to add new firework rockets
-# use this to prevent package spam from too many particles
+# Radius used when counting nearby rockets for fireworks_max_rockets.
+fireworks_scan_radius (Firework search radius) int 12 1 64
 
-fireworks_scan_radius (firework search radius) int 12
-
-# defines the region used in fireworks_max_rockets
-
+# When disabled, fireworks cannot be crafted, but existing fireworks can still be dyed.
 fireworks_enable_crafting (Enable crafting recipes for fireworks) bool true
 
-# When disabled, fireworks cannot be crafted but can still be dyed with secondary colors
+# Comma-separated list of standard firework shapes to register.
+# Available: sphere, star, ring, burst, spiral, chaotic, flame, snowflake, hour_glass
+# Leave empty to enable all shapes. Disabled shapes are unregistered.
+fireworks_enabled_shapes (Enabled firework shapes) string sphere,star,ring,burst,spiral,chaotic,flame,snowflake,hour_glass
 
-fireworks_enable_mesecons (Enable fireworks to respond to redstone/mesecons signals) bool true
+# When enabled, item and node names for shapes removed from
+# fireworks_enabled_shapes are aliased to the first enabled shape (preferring
+# burst). When disabled, removed shapes are unregistered with no alias.
+fireworks_alias_disabled_shapes (Alias disabled firework shapes) bool false
 
-# When enabled, fireworks will emit when triggered by redstone or mesecons power
+# When enabled, fireworks respond to mesecons and MCL redstone input and emit output pulses.
+fireworks_enable_mesecons (Enable redstone/mesecons support) bool true
 
-fireworks_manual_refill (Forces right-clicking a fireworks blocks every 9 activations as a manual "reload") bool true
-
-# When enabled, fireworks will require manual interaction once per 9 mesecon/redstone activations.
+# When enabled, every 10 mesecon/redstone activations require a manual right-click reload.
+fireworks_manual_refill (Require manual right-click reload after 10 activations) bool true

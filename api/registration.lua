@@ -2,6 +2,102 @@ local registered_fireworks = {}
 local default_max_fireworks = tonumber(core.settings:get("fireworks_max_rockets")) or 2
 local default_scan_radius = tonumber(core.settings:get("fireworks_scan_radius")) or 12
 
+local rightclick_guard_time = 0.4
+local last_rightclick = {}
+
+local function is_repeated_rightclick(player_name, pos, now)
+	local entries = last_rightclick[player_name]
+	if not entries then
+		entries = {}
+		last_rightclick[player_name] = entries
+	end
+
+	-- Drop stale entries so the table only holds clicks inside the guard window.
+	for key, stamp in pairs(entries) do
+		if now - stamp >= rightclick_guard_time then
+			entries[key] = nil
+		end
+	end
+
+	local key = core.pos_to_string(pos)
+	local repeated = entries[key] ~= nil
+	entries[key] = now
+	return repeated
+end
+
+core.register_on_leaveplayer(function(player)
+	last_rightclick[player:get_player_name()] = nil
+end)
+
+local function mesecons_enabled()
+	return core.settings:get_bool("fireworks_enable_mesecons", true)
+end
+
+local function ensure_fuse_inventory(meta)
+	local inv = meta:get_inventory()
+	if not inv:get_list("fuse") then
+		inv:set_size("fuse", 1)
+	end
+	return inv
+end
+
+local function get_admin_delay(meta)
+	-- Read the raw string so a deliberate admin_delay of 0 is not mistaken for
+	-- "unset" (older versions stored the fuse count in the "delay" key).
+	local value = meta:get_string("admin_delay")
+	if value == "" then
+		value = meta:get_string("delay")
+	end
+	local delay = tonumber(value) or 0
+	return math.max(0, math.min(300, math.floor(delay)))
+end
+
+local function refund_fuse(pos, count)
+	if count and count > 0 then
+		core.item_drop(ItemStack("fireworks_reimagined:fuse " .. count), nil, pos)
+	end
+end
+
+local function swap_powered_node(pos, powered)
+	-- Callbacks may hand us a plain {x,y,z} table, while mcl_redstone uses
+	-- vector methods such as pos:subtract(). Normalise to a real vector.
+	pos = vector.copy(pos)
+	local node = core.get_node(pos)
+	if core.get_item_group(node.name, "firework") ~= 1 then
+		return
+	end
+
+	local color_bits = node.param2 % 16
+	mcl_redstone.swap_node(pos, {
+		name = node.name,
+		param1 = node.param1,
+		param2 = color_bits + (powered and 16 or 0),
+	})
+end
+
+local function pulse_redstone_output(pos)
+	if not (mesecons_enabled() and core.get_modpath("mesecons")) then
+		return
+	end
+
+	pos = vector.copy(pos)
+	mesecon.receptor_on(pos, mesecon.rules.pplate)
+	core.after(1, function()
+		mesecon.receptor_off(pos, mesecon.rules.pplate)
+	end)
+end
+
+local function pulse_redstone_node(pos)
+	if not (mesecons_enabled() and core.get_modpath("mcl_redstone")) then
+		return
+	end
+
+	swap_powered_node(pos, true)
+	core.after(1, function()
+		swap_powered_node(pos, false)
+	end)
+end
+
 local function can_activate(pos, radius, max_fireworks)
 	radius = radius or default_scan_radius
 	local pmin = vector.offset(pos, -radius, 0, -radius)
@@ -18,24 +114,21 @@ local function can_activate(pos, radius, max_fireworks)
 	return count < (max_fireworks or default_max_fireworks)
 end
 
-local function launch_firework(pos, entity, shape, ip, c1, c2)
+local function launch_firework(pos, entity, shape, c1, c2)
 	local firework_entity = core.add_entity(pos, entity or "fireworks_reimagined:firework_entity")
 	if firework_entity then
-		if ip ~= (nil or false) then
-			firework_entity:get_luaentity().ip = true
-		end
-		firework_entity:get_luaentity().firework_shape = shape
-		firework_entity:get_luaentity().color1 = c1
-		firework_entity:get_luaentity().color2 = c2
+		local lua_entity = firework_entity:get_luaentity()
+		lua_entity.firework_shape = shape
+		lua_entity.color1 = c1
+		lua_entity.color2 = c2
 		core.sound_play("fireworks_launch", {
 			pos = pos,
 			max_hear_distance = 40,
-			gain = 4.0
+			gain = 0.6
 		})
-		local entity_data = firework_entity:get_luaentity()
-		local flight_time = entity_data.time_remaining or 3
+		local flight_time = lua_entity.time_remaining or math.random(2.5,3)
 		core.add_particlespawner({
-			amount = 75 * flight_time,
+			amount = math.max(1, math.floor(75 * flight_time)),
 			time = flight_time,
 			minpos = {x=-0.2, y=-0.2, z=-0.2},
 			maxpos = {x=0.2, y=0.2, z=0.2},
@@ -60,119 +153,95 @@ local function launch_firework(pos, entity, shape, ip, c1, c2)
 end
 
 function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid, depth_layers, texture, batch_size, log)
+	if not color_grid or not color_grid[1] then
+		return
+	end
 
 	local grid_width = #color_grid[1]
 	local grid_height = #color_grid
 	local size_multiplier = 2.2
-	local particle_lifetime = 2.5 - delay
 	local radius = math.max(grid_width, grid_height) * size_multiplier * 0.8
-	local b_size = batch_size or 1
+	local b_size = math.max(1, math.floor(tonumber(batch_size) or 1))
+	local layers = math.max(1, math.floor(tonumber(depth_layers) or 1))
 	local color_particles = {}
 
-	-- Extract dominant colors from the grid for effects
-	local dominant_colors = {}
-	local color_counts = {}
+	local pixel_offset = size_multiplier * 0.5
+	local offsets = {
+		{-pixel_offset * 0.5, -pixel_offset * 0.5, 0},
+		{pixel_offset * 0.5, -pixel_offset * 0.5, 0},
+		{-pixel_offset * 0.5, pixel_offset * 0.5, 0},
+		{pixel_offset * 0.5, pixel_offset * 0.5, 0},
+	}
 
-	for z = 0, depth_layers do
+	local center_x = (grid_width + 1) / 2
+	local center_y = (grid_height + 1) / 2
+	local center_z = (layers - 1) / 2
+
+	for z = 0, layers - 1 do
 		for y = 1, grid_height do
 			for x = 1, grid_width do
 				local color = color_grid[y][x]
-				if color ~= "#000000" then
+				if color and color ~= "#000000" then
 					color_particles[color] = color_particles[color] or {}
-
-					local pixel_offset = size_multiplier * 0.5
-					local offsets = {
-						{-pixel_offset * 0.5, -pixel_offset * 0.5, 0},
-						{pixel_offset * 0.5, -pixel_offset * 0.5, 0},
-						{-pixel_offset * 0.5, pixel_offset * 0.5, 0},
-						{pixel_offset * 0.5, pixel_offset * 0.5, 0},
-					}
 
 					for _, offset in ipairs(offsets) do
 						local particle_pos = vector.add(pos, vector.new(
-							(x - (grid_width / 2)) * size_multiplier + offset[1],
-							(y - (grid_height / 2)) * size_multiplier + offset[2],
-							(z - (depth_layers / 2)) * size_multiplier + offset[3]
+							(x - center_x) * size_multiplier + offset[1],
+							(y - center_y) * size_multiplier + offset[2],
+							(z - center_z) * size_multiplier + offset[3]
 						))
 						table.insert(color_particles[color], particle_pos)
-						color_counts[color] = (color_counts[color] or 0) + 1
 					end
 				end
 			end
 		end
 	end
 
-	-- Find the most dominant colors for effects
-	local sorted_colors = {}
-	for color, count in pairs(color_counts) do
-		table.insert(sorted_colors, {color = color, count = count})
-	end
-	table.sort(sorted_colors, function(a, b) return a.count > b.count end)
-
-	local primary_color = sorted_colors[1] and sorted_colors[1].color or "#FFFFFF"
-	local secondary_color = sorted_colors[2] and sorted_colors[2].color or primary_color
-	local tertiary_color = sorted_colors[3] and sorted_colors[3].color or secondary_color
 	local total_spawners = 0
 
-	-- ===== STAGE 1: INITIAL FLASH AND CORE IGNITION =====
-	core.after(delay * 0.5, function()
-		core.add_particle({
-			pos = pos,
-			velocity = {x = 0, y = 0, z = 0},
-			acceleration = {x = 0, y = 0, z = 0},
-			expirationtime = 0.4,
-			size = radius * 2.0,
-			texture = {
-				name = "fireworks_white.png^[colorize:" .. secondary_color .. ":100",
-				scale_tween = {
-					style = "fwd",
-					reps = 1,
-					2.5,
-					0.0,
-					-0.1
-				}
-			},
-			glow = 12,
-			collisiondetection = false,
-		})
-		total_spawners = total_spawners + 1
-	end)
+	for color, positions in pairs(color_particles) do
+		local colored_texture = texture
+			and (texture .. "^[colorize:" .. color)
+			or ("fireworks_white.png^[colorize:" .. color)
+		for i = 1, #positions, b_size do
+			local last = math.min(i + b_size - 1, #positions)
+			local world_minpos = vector.new(1e10, 1e10, 1e10)
+			local world_maxpos = vector.new(-1e10, -1e10, -1e10)
+			for j = i, last do
+				local pos_item = positions[j]
+				world_minpos = vector.new(
+					math.min(world_minpos.x, pos_item.x),
+					math.min(world_minpos.y, pos_item.y),
+					math.min(world_minpos.z, pos_item.z)
+				)
+				world_maxpos = vector.new(
+					math.max(world_maxpos.x, pos_item.x),
+					math.max(world_maxpos.y, pos_item.y),
+					math.max(world_maxpos.z, pos_item.z)
+				)
+			end
 
-	-- ===== STAGE 2: PRIMARY GRID EXPLOSION =====
-	core.after(delay, function()
-		for color, positions in pairs(color_particles) do
-			local colored_texture = texture and (texture .. "^[colorize:" .. color) or ("black.png^[colorize:" .. color)
-			for i = 1, #positions, b_size do
-				local batch_positions = {}
-				for j = i, math.min(i + b_size - 1, #positions) do
-					table.insert(batch_positions, positions[j])
-				end
-				local world_minpos = vector.new(1e10, 1e10, 1e10)
-				local world_maxpos = vector.new(-1e10, -1e10, -1e10)
-				for _, pos_item in ipairs(batch_positions) do
-					world_minpos = vector.new(
-						math.min(world_minpos.x, pos_item.x),
-						math.min(world_minpos.y, pos_item.y),
-						math.min(world_minpos.z, pos_item.z)
-					)
-					world_maxpos = vector.new(
-						math.max(world_maxpos.x, pos_item.x),
-						math.max(world_maxpos.y, pos_item.y),
-						math.max(world_maxpos.z, pos_item.z)
-					)
-				end
-
-				local particle_properties = {
-					pos = world_minpos,
-					velocity = {x = math.random(-8,8), y = 3, z = math.random(-9, 9)},
-					acceleration = {x=0, y=-9.81, z=0},
-					expirationtime = math.random(2, 4),
-					size = math.random(1.5, 3),
-					texture = {
+			core.add_particlespawner({
+				amount = last - i + 1,
+				time = 0.01,
+				minpos = world_minpos,
+				maxpos = world_maxpos,
+				minvel = {x = -8, y = 3, z = -9},
+				maxvel = {x = 8, y = 3, z = 9},
+				minacc = {x = 0, y = -9.81, z = 0},
+				maxacc = {x = 0, y = -9.81, z = 0},
+				minexptime = 2,
+				maxexptime = 4,
+				minsize = 1.5,
+				maxsize = 3,
+				glow = math.random(12, 14),
+				drag = vector.new(0.04, 0.02, 0.04),
+				texpool = {
+					{
 						name = colored_texture,
 						scale_tween = {
 							style = "fwd",
-							reps = 1,
+						reps = 1,
 							1.4,
 							1.0,
 							0.2,
@@ -182,30 +251,29 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 						alpha_tween = {
 							style = "fwd",
 							reps = 1,
-							255,
-							200,
-							0,
+							1.0,
+							0.8,
+							0.0,
 							start = 0.0,
 							finish = 1.0
 						}
-					},
-					glow = math.random(13, 16),
-					drag = vector.new(0.04, 0.02, 0.04),
-				}
-
-				core.add_particle(particle_properties)
-				total_spawners = total_spawners + 1
-			end
+					}
+				},
+				blend = "add",
+				collisiondetection = false,
+				collision_removal = false,
+			})
+			total_spawners = total_spawners + 1
 		end
-	end)
+	end
 
-	-- ===== STAGE 3: ATMOSPHERIC PRESSURE WAVES =====
-	-- Multi-ring pressure wave system
 	local wave_rings = 4
 	for ring = 1, wave_rings do
 		core.after(delay + 0.05 + (ring * 0.12), function()
-			local wave_radius = radius * (1.5 + ring * 1.2)
-			local wave_particles = math.floor(60 - ring * 10)
+			local wave_radius = math.min(radius * (1.5 + ring * 1.2), 120)
+			local wave_particles = math.max(1, math.floor(60 - ring * 10))
+			local wave_alpha = math.max(0, 60 - ring * 10)
+			local wave_size = math.max(0.1, 1.5 - ring * 0.2)
 
 			for i = 1, wave_particles do
 				local wave_angle = (i / wave_particles) * math.pi * 2
@@ -224,9 +292,9 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 					},
 					acceleration = {x = 0, y = 0, z = 0},
 					expirationtime = 1.8,
-					size = (1.5 - ring * 0.2),
+					size = wave_size,
 					texture = {
-						name = "fireworks_white.png^[colorize:#DDDDDD:" .. (60 - ring * 10),
+						name = "fireworks_white.png^[colorize:#DDDDDD:" .. wave_alpha,
 						scale_tween = {
 							style = "fwd",
 							reps = 1,
@@ -235,7 +303,8 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 							0.0
 						},
 					},
-					glow = 4 - ring,
+					glow = math.max(0, 4 - ring),
+					blend = "add",
 					collisiondetection = false,
 				})
 				total_spawners = total_spawners + 1
@@ -243,7 +312,6 @@ function fireworks_reimagined.register_firework_explosion(pos, delay, color_grid
 		end)
 	end
 
-	-- Performance tracking
 	if log == true then
 		core.after(6.0, function()
 			core.log("warning", "Total particle spawners used: " .. total_spawners)
@@ -267,16 +335,6 @@ local color_palette = {
 
 fireworks_reimagined.color_palette = color_palette
 
-local function encode_colors(color1_idx, color2_idx)
-	return (color1_idx - 1) * 8 + (color2_idx - 1)
-end
-
-local function decode_colors(param2)
-	local c1_idx = math.floor(param2 / 16) + 1
-	local c2_idx = (param2 % 16) + 1
-	return c1_idx, c2_idx
-end
-
 local function get_color_by_index(idx)
 	if idx < 1 or idx > #color_palette then
 		return color_palette[1].hex
@@ -284,16 +342,14 @@ local function get_color_by_index(idx)
 	return color_palette[idx].hex
 end
 
-fireworks_reimagined.encode_colors = encode_colors
-fireworks_reimagined.decode_colors = decode_colors
 fireworks_reimagined.get_color_by_index = get_color_by_index
 
-local known_shapes = {"sphere", "star", "ring", "burst", "spiral", "chaotic", "flame", "snowflake", "hour_glass"}
+local known_shapes = fireworks_reimagined.known_shapes
 
-function fireworks_reimagined.register_firework_node(tiles, shape, entity, cooldown, mese_cooldown, ip, options)
+function fireworks_reimagined.register_firework_node(tiles, node_name, shape, entity, cooldown, mese_cooldown, ip, options)
 	options = options or {}
-	core.register_alias("fireworks_reimagined:firework_" .. shape .. "_0", "fireworks_reimagined:firework_" .. shape)
-	core.register_alias("fireworks_reimagined:firework_" .. shape .. "_10", "fireworks_reimagined:firework_" .. shape)
+	core.register_alias("fireworks_reimagined:firework_" .. node_name .. "_0", "fireworks_reimagined:firework_" .. node_name)
+	core.register_alias("fireworks_reimagined:firework_" .. node_name .. "_10", "fireworks_reimagined:firework_" .. node_name)
 
 	local primary_color_idx = options.primary_color or 1
 	local primary_color_hex = get_color_by_index(primary_color_idx)
@@ -307,10 +363,12 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 		node_tiles = { "black.png", "black.png", "black.png^fireworks_overlay_1.png^fireworks_overlay_2.png", "black.png^fireworks_overlay_1.png^fireworks_overlay_2.png", "black.png^fireworks_overlay_1.png^fireworks_overlay_2.png", "black.png^fireworks_overlay_1.png^fireworks_overlay_2.png" }
 	end
 
-	-- Ensure 64x64 and add shape icon
-	-- Automatically determine the base shape icon from the shape/node name
-	local icon_overlay = options.icon_overlay
-	if not icon_overlay then
+	local icon_overlay
+	if options.icon_overlay == false then
+		icon_overlay = nil
+	elseif options.icon_overlay then
+		icon_overlay = options.icon_overlay
+	else
 		for _, s in ipairs(known_shapes) do
 			if shape:find(s) then
 				icon_overlay = s
@@ -318,14 +376,11 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 			end
 		end
 	end
-	-- If it's still nil, or if it was explicitly set to false, don't add icon
-	icon_overlay = icon_overlay or nil
 
 	for i = 1, #node_tiles do
 		local tile = node_tiles[i]
 		local tile_name = type(tile) == "string" and tile or tile.name
 
-		-- Resize logic (always do 64x64)
 		if type(tile) == "string" then
 			if not tile:find("%[resize:64x64") then
 				node_tiles[i] = tile .. "^[resize:64x64"
@@ -336,7 +391,6 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 			end
 		end
 
-		-- Overlay logic
 		if icon_overlay then
 			local icon = "fireworks_overlay_" .. icon_overlay .. ".png"
 			if not tile_name:find(icon) then
@@ -352,7 +406,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 	end
 
 	local node_def = {
-		description = options.description or (shape:gsub("(%a)([%w]*)", function(a,b) return a:upper() .. b end):gsub("_", " ") .. " Fireworks"),
+		description = options.description or (node_name:gsub("(%a)([%w]*)", function(a,b) return a:upper() .. b end):gsub("_", " ") .. " Fireworks"),
 		tiles = node_tiles,
 		groups = { cracky = 1, oddly_breakable_by_hand = 1 , firework = 1,
 					handy = 1, axey = 1, material_wood = 1,
@@ -364,6 +418,12 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 		light_source = 5,
 		_mcl_blast_resistance = 1,
 		_mcl_hardness = 1,
+		on_construct = function(pos)
+			ensure_fuse_inventory(core.get_meta(pos))
+			if options.on_construct then
+				options.on_construct(pos)
+			end
+		end,
 		after_place_node = function(pos, placer, itemstack, pointed_thing)
 			local param2 = core.get_node(pos).param2
 
@@ -373,7 +433,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 
 			local meta = core.get_meta(pos)
 			meta:set_string("allow_others", "false")
-			meta:set_string("owner", placer:get_player_name())
+			meta:set_string("owner", placer and placer:get_player_name() or "")
 			meta:set_string("c1", c1)
 			meta:set_string("c2", c2)
 		end,
@@ -384,11 +444,8 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				local owner = meta:get_string("owner")
 				local player_name = clicker:get_player_name()
 				local privs = core.get_player_privs(player_name)
-				local is_owner = player_name == owner or privs.fireworks_master
-				local inv = meta:get_inventory()
-				if inv:is_empty("fuse") then
-					inv:set_size("fuse", 1)
-				end
+				local is_owner = player_name == owner or privs.fireworks_master or privs.fireworks_admin
+				ensure_fuse_inventory(meta)
 
 				local has_mcl = core.get_modpath("mcl_core") ~= nil
 				local has_mcl_formspec = core.get_modpath("mcl_formspec") ~= nil
@@ -409,6 +466,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 									"list[current_player;main;0.7,3.8;8,4]",
 									"button_exit[0.7,0.4;2,1;save;<]",
 									"listring[nodemeta:" .. spos .. ";fuse]",
+									"listring[current_player;main]",
 							})
 						else
 							formspec = table.concat({
@@ -416,7 +474,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 									"size[8,5]",
 									"label[0.4,0.7;Settings]",
 									"checkbox[0.4,1.5;allow_others;Allow others to launch this firework;".. meta:get_string("allow_others") .."]",
-									"field[0.4,2.5;7,0.5;delay;Launch Delay (seconds);".. meta:get_int("delay") .."]",
+									"field[0.4,2.5;7,0.5;admin_delay;Launch Delay (seconds);".. get_admin_delay(meta) .."]",
 									"button_exit[2.9,3.4;2,1;save;Close]"
 							})
 						end
@@ -433,26 +491,53 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 			local owner = meta:get_string("owner")
 			local player_name = clicker:get_player_name()
 			local privs = core.get_player_privs(player_name)
+			local has_launch_priv = privs.fireworks_admin or privs.fireworks_master
 			local is_owner = player_name == owner or privs.fireworks_master or privs.fireworks_admin
 			local allow_others = meta:get_string("allow_others") == "true"
-			local is_allowed = is_owner or allow_others or privs.fireworks_master or privs.fireworks_admin
-			local inv = meta:get_inventory()
-			if inv:is_empty("fuse") then
-				inv:set_size("fuse", 1)
+			-- Legacy nodes may have no owner; let the first player to use one
+			-- claim it instead of leaving it permanently locked.
+			local is_unowned = owner == ""
+			local is_allowed = is_unowned or is_owner or allow_others
+
+			if not is_allowed then
+				core.chat_send_player(player_name, "You don't have permission to launch this firework.")
+				return
 			end
+
+			-- Used to regulate launches and hopefully fix the infamous double launch issue.
+			if is_repeated_rightclick(player_name, pos, now) then
+				return
+			end
+
+			-- Fireworks masters and admins intentionally bypass launch cooldowns
+			-- and the nearby-rocket limit.
+			if not has_launch_priv and meta:get_int("busy_until") > now then
+				core.chat_send_player(player_name, "Please wait before launching another firework!")
+				return
+			end
+
+			if not has_launch_priv and not can_activate(pos) then
+				core.chat_send_player(player_name, "Please wait before launching another firework!")
+				return
+			end
+
+			local inv = ensure_fuse_inventory(meta)
+			local fuse_stack = inv:get_stack("fuse", 1)
+			local fuse_count = fuse_stack:get_count()
+
 			local function is_valid_hex(color)
-			-- Accepts #RGB or #RRGGBB
-			return type(color) == "string"
-				and (color:match("^#%x%x%x$") or color:match("^#%x%x%x%x%x%x$")) ~= nil
+				-- Accepts #RGB or #RRGGBB
+				return type(color) == "string"
+					and (color:match("^#%x%x%x$") or color:match("^#%x%x%x%x%x%x$")) ~= nil
 			end
 
 			local c1_raw = meta:get_string("c1")
 			local c2_raw = meta:get_string("c2")
-
 			local c1 = is_valid_hex(c1_raw) and c1_raw or "#FFFFFF"
 			local c2 = is_valid_hex(c2_raw) and c2_raw or c1
 
-			if meta:get_string("owner") == "" then
+			-- Only claim an unowned node after authorization has succeeded.
+			if owner == "" then
 				meta:set_string("owner", player_name)
 			end
 
@@ -462,88 +547,31 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				meta:set_string("infotext", "")
 			end
 
-			local fuse_stack = inv:get_stack("fuse", 1)
-			local fuse_count = fuse_stack:get_count()
-			local delay
-			if not privs.fireworks_admin then
-				delay = fuse_count
-			elseif privs.fireworks_admin then
-				delay = meta:get_int("delay")
-			end
-
-			if is_allowed and (can_activate(pos)) then
+			local delay = privs.fireworks_admin and get_admin_delay(meta) or fuse_count
+			if fuse_count > 0 then
 				inv:set_stack("fuse", 1, nil)
-				meta:set_int("busy_until", now + delay + 1)
-				core.after(delay, function()
-					launch_firework(pos, entity, shape, ip, c1, c2)
-					if core.get_modpath("mesecons") then
-						mesecon.receptor_on(pos, mesecon.rules.pplate)
-						core.after(1, function()
-							mesecon.receptor_off(pos, mesecon.rules.pplate)
-						end)
-					end
-				if core.get_modpath("mcl_redstone") then
-					local current_node = core.get_node(pos)
-					if core.get_item_group(current_node.name, "firework") == 1 then
-						local color_bits = current_node.param2 % 16
-						mcl_redstone.swap_node(pos, {
-							name = current_node.name,
-							param1 = current_node.param1,
-							param2 = color_bits + 16
-						})
-						core.after(1, function()
-							local reset_node = core.get_node(pos)
-							if core.get_item_group(reset_node.name, "firework") == 1 then
-								local reset_color_bits = reset_node.param2 % 16
-								mcl_redstone.swap_node(pos, {
-									name = reset_node.name,
-									param1 = reset_node.param1,
-									param2 = reset_color_bits
-								})
-							end
-						end)
-					end
-				end
-				end)
-			elseif not is_allowed then
-				core.chat_send_player(player_name, "You don't have permission to launch this firework.")
-			elseif (privs.fireworks_master or privs.fireworks_admin) and (can_activate(pos)) then
-				meta:set_int("busy_until", now + delay + 1)
-				core.after(delay, function()
-					launch_firework(pos, entity, shape, ip, c1, c2)
-					if core.get_modpath("mesecons") then
-						mesecon.receptor_on(pos, mesecon.rules.pplate)
-						core.after(1, function()
-							mesecon.receptor_off(pos, mesecon.rules.pplate)
-						end)
-					end
-				if core.get_modpath("mcl_redstone") then
-					local current_node = core.get_node(pos)
-					if core.get_item_group(current_node.name, "firework") == 1 then
-						local color_bits = current_node.param2 % 16
-						mcl_redstone.swap_node(pos, {
-							name = current_node.name,
-							param1 = current_node.param1,
-							param2 = color_bits + 16
-						})
-						core.after(1, function()
-							local reset_node = core.get_node(pos)
-							if core.get_item_group(reset_node.name, "firework") == 1 then
-								local reset_color_bits = reset_node.param2 % 16
-								mcl_redstone.swap_node(pos, {
-									name = reset_node.name,
-									param1 = reset_node.param1,
-									param2 = reset_color_bits
-								})
-							end
-						end)
-					end
-				end
-					inv:set_stack("fuse", 1, nil)
-				end)
-			else
-				core.chat_send_player(player_name, "Please wait before launching another firework!")
 			end
+			meta:set_int("busy_until", now + delay + 1)
+
+			local expected_owner = meta:get_string("owner")
+			local expected_node = node.name
+			core.after(delay, function()
+				local current_node = core.get_node(pos)
+				if current_node.name ~= expected_node then
+					refund_fuse(pos, fuse_count)
+					return
+				end
+
+				local current_meta = core.get_meta(pos)
+				if expected_owner ~= "" and current_meta:get_string("owner") ~= expected_owner then
+					refund_fuse(pos, fuse_count)
+					return
+				end
+
+				launch_firework(pos, entity, shape, c1, c2)
+				pulse_redstone_output(pos)
+				pulse_redstone_node(pos)
+			end)
 		end,
 		on_metadata_inventory_put = function(pos, listname, index, stack, player)
 			if listname == "fuse" and stack:get_name() == "fireworks_reimagined:fuse" then
@@ -569,14 +597,21 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 		on_dig = function(pos, node, digger)
 			local meta = core.get_meta(pos)
 			local inv = meta:get_inventory()
-			if not inv:is_empty("fuse") then
-				local fuse_stack = inv:get_stack("fuse", 1)
-				local fuse_count = fuse_stack:get_count()
-				if fuse_count > 0 then
-					core.item_drop(fuse_stack, digger, pos)
-				end
+			local fuse_stack
+			if inv:get_list("fuse") then
+				fuse_stack = inv:get_stack("fuse", 1)
 			end
-			return core.node_dig(pos, node, digger)
+
+			-- Dig first: protection is checked inside core.node_dig, so the stored
+			-- fuse must not be dropped when digging is denied.
+			if not core.node_dig(pos, node, digger) then
+				return false
+			end
+
+			if fuse_stack and not fuse_stack:is_empty() then
+				core.item_drop(fuse_stack, nil, pos)
+			end
+			return true
 		end,
 	}
 
@@ -586,20 +621,31 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 	if options.on_place then node_def.on_place = options.on_place end
 	if options.overlay_tiles then node_def.overlay_tiles = options.overlay_tiles end
 
+	local wood_name = core.get_modpath("mcl_core") and "mcl_core:wood" or "default:wood"
+	local wood_def = core.registered_nodes[wood_name]
+	if wood_def and wood_def.sounds then
+		node_def.sounds = wood_def.sounds
+	elseif core.get_modpath("mcl_sounds") then
+		node_def.sounds = mcl_sounds.node_sound_wood_defaults()
+	end
+
 	if core.get_modpath("mesecons") then
 		node_def.mesecons = {
 			effector = {
 				rules = mesecon.rules.pplate,
 
 				action_on = function(pos, node)
+					if not mesecons_enabled() then
+						return false
+					end
+					
 					local meta = core.get_meta(pos)
 					local now = core.get_gametime()
 
-					-- Timestamp lock (1 second)
 					if meta:get_int("busy_until") > now then
 						return false
 					end
-
+					-- Can activate has to be checked before launch and after.
 					if not can_activate(pos) then
 						return false
 					end
@@ -610,43 +656,46 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 						return false
 					end
 
-					local inv = meta:get_inventory()
-					if inv:is_empty("fuse") then
-						inv:set_size("fuse", 1)
-					end
-
+					local inv = ensure_fuse_inventory(meta)
 					local fuse_stack = inv:get_stack("fuse", 1)
 					local fuse_count = fuse_stack:get_count()
 					if fuse_count > 0 then
 						inv:set_stack("fuse", 1, nil)
 					end
-					meta:set_int("delay", fuse_count or 0)
-					-- Should Never be nil... Theoretically.
-					local delay = meta:get_int("delay") or 0
+
+					-- Keep the transient fuse delay separate from the admin delay.
+					meta:set_int("fuse_delay", fuse_count)
+					local delay = fuse_count
+
 					if core.settings:get_bool("fireworks_manual_refill", true) then
 						meta:set_int("emit_count", emit_count + 1)
 					end
 
-					local c1 = meta:get_string("c1") or "#FFFFFF"
-					local c2 = meta:get_string("c2") or c1
+					local c1 = meta:get_string("c1")
+					local c2 = meta:get_string("c2")
+					if c1 == "" then c1 = "#FFFFFF" end
+					if c2 == "" then c2 = c1 end
 
 					meta:set_int("busy_until", now + delay + 1)
 
+					local expected_node = node.name
 					core.after(delay, function()
-						launch_firework(pos, entity, shape, ip, c1, c2)
-						if core.settings:get_bool("fireworks_enable_mesecons", true) then
-							-- Output a short mesecon pulse
-							mesecon.receptor_on(pos, mesecon.rules.pplate)
-							core.after(1, function()
-								mesecon.receptor_off(pos, mesecon.rules.pplate)
-							end)
+						if core.get_node(pos).name ~= expected_node then
+							refund_fuse(pos, fuse_count)
+							return
+						end
+						if can_activate(pos) then
+							launch_firework(pos, entity, shape, c1, c2)
+							pulse_redstone_output(pos)
+							pulse_redstone_node(pos)
 						end
 					end)
+
+					return true
 				end,
 			},
 		}
 	end
-
 
 	if core.get_modpath("mcl_redstone") then
 		node_def._mcl_redstone = {
@@ -657,11 +706,15 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 				local meta = core.get_meta(pos)
 				local power = mcl_redstone.get_power(pos)
 				local prev_power = meta:get_int("mcl_redstone_power")
+				local now = core.get_gametime()
 
-				if power > 0 and prev_power == 0 and can_activate(pos) then
-					--if not core.settings:get_bool("fireworks_enable_mesecons", true) then
-					--end
+				if not mesecons_enabled() then
+					meta:set_int("mcl_redstone_power", power)
+					return
+				end
 
+				if power > 0 and prev_power == 0 and can_activate(pos)
+						and meta:get_int("busy_until") <= now then
 					local emit_count = meta:get_int("emit_count")
 					if emit_count >= 10 then
 						meta:set_string("infotext", "Right-click to resume mesecons usage")
@@ -669,56 +722,42 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 						return
 					end
 
-					local inv = meta:get_inventory()
-					if inv:is_empty("fuse") then
-						inv:set_size("fuse", 1)
-					end
-
-					local fuse_stack = inv:get_stack("fuse", 1)
-					local fuse_count = fuse_stack:get_count()
-					local delay = fuse_count
+					local inv = ensure_fuse_inventory(meta)
+					local fuse_count = inv:get_stack("fuse", 1):get_count()
 					if fuse_count > 0 then
 						inv:set_stack("fuse", 1, nil)
 					end
 
-					local c1 = meta:get_string("c1") or "#FFFFFF"
-					local c2 = meta:get_string("c2") or c1
+					meta:set_int("fuse_delay", fuse_count)
+					local delay = fuse_count
 
-					core.after(delay, function()
-						launch_firework(pos, entity, shape, ip, c1, c2)
-					end)
-
-					meta:set_int("powered", 1)
 					if core.settings:get_bool("fireworks_manual_refill", true) then
 						meta:set_int("emit_count", emit_count + 1)
 					end
 
-					if core.get_item_group(node.name, "firework") == 1 then
-						local color_bits = node.param2 % 16
-						mcl_redstone.swap_node(pos, {
-							name = node.name,
-							param1 = node.param1,
-							param2 = color_bits + 16
-						})
+					local c1 = meta:get_string("c1")
+					local c2 = meta:get_string("c2")
+					if c1 == "" then c1 = "#FFFFFF" end
+					if c2 == "" then c2 = c1 end
 
-						core.after(1, function()
-							local current_node = core.get_node(pos)
-							if core.get_item_group(current_node.name, "firework") == 1 then
-								local current_color_bits = current_node.param2 % 16
-								mcl_redstone.swap_node(pos, {
-									name = current_node.name,
-									param1 = current_node.param1,
-									param2 = current_color_bits
-								})
-							end
-						end)
-					end
+					meta:set_int("busy_until", now + delay + 1)
+
+					local expected_node = node.name
+					core.after(delay, function()
+						if core.get_node(pos).name ~= expected_node then
+							refund_fuse(pos, fuse_count)
+							return
+						end
+
+						launch_firework(pos, entity, shape, c1, c2)
+						pulse_redstone_node(pos)
+					end)
 				end
 
 				meta:set_int("mcl_redstone_power", power)
 			end,
 			get_power = function(node, dir)
-				if node.param2 >= 16 then
+				if mesecons_enabled() and node.param2 >= 16 then
 					return 7
 				end
 				return 0
@@ -726,7 +765,7 @@ function fireworks_reimagined.register_firework_node(tiles, shape, entity, coold
 		}
 	end
 
-	core.register_node(":fireworks_reimagined:firework_" .. shape, node_def)
+	core.register_node(":fireworks_reimagined:firework_" .. node_name, node_def)
 end
 
 core.register_on_player_receive_fields(function(player, formname, fields)
@@ -738,9 +777,8 @@ core.register_on_player_receive_fields(function(player, formname, fields)
 	local pos = core.string_to_pos(pos_str)
 	if not pos then return true end
 
-	local node_name = core.get_node(pos).name
-	-- is the firework node still around?
-	if core.get_item_group(node_name, "firework") ~= 1 then return true end
+	local current_node_name = core.get_node(pos).name
+	if core.get_item_group(current_node_name, "firework") ~= 1 then return true end
 
 	local meta = core.get_meta(pos)
 	local player_name = player:get_player_name()
@@ -750,22 +788,39 @@ core.register_on_player_receive_fields(function(player, formname, fields)
 
 	if not is_owner then return true end
 
-	-- checkbox values will only be submittet when changed -> not in the save-event
 	if fields.allow_others ~= nil then
 		meta:set_string("allow_others", fields.allow_others)
 	end
 
 	if (fields.save or fields.quit or fields.cancel) then
-		if privs.fireworks_admin and fields.delay and fields.delay ~= "" then
-			local delay = tonumber(fields.delay) or 0
+		if privs.fireworks_admin and fields.admin_delay and fields.admin_delay ~= "" then
+			local delay = tonumber(fields.admin_delay) or 0
 			delay = math.min(300, math.max(0, delay))
-			meta:set_int("delay", delay)
+			meta:set_int("admin_delay", delay)
 		end
 	end
 	return true
 end)
 
 function fireworks_reimagined.register_firework_entity(name, def)
+	def = def or {}
+	local explosion_callback = def.firework_explosion
+	if type(explosion_callback) ~= "function" then
+		core.log("warning", "[fireworks_reimagined] Entity '" .. name .. "' has no firework_explosion callback; using a sphere explosion.")
+		explosion_callback = function(pos, color1, color2)
+			fireworks_reimagined.spawn_firework_explosion(
+				pos,
+				def.firework_shape or "sphere",
+				nil,
+				color1 or "#FFFFFF",
+				color2 or color1 or "#FFFFFF",
+				"255",
+				nil,
+				nil
+			)
+		end
+	end
+
 	local entity_def = {
 		initial_properties = {
 			fireworks    = true,
@@ -780,7 +835,9 @@ function fireworks_reimagined.register_firework_entity(name, def)
 		yaw = 0,
 		acceleration = 5,
 		firework_shape = def.firework_shape or "sphere",
-		time_remaining = def.time_remaining or 3,
+		firework_explosion = explosion_callback,
+		time_remaining = def.time_remaining,
+		launch_noise = def.launch_noise,
 		spiral = def.spiral or false,
 		spiral_force = def.spiral_force or 100,
 		spiral_radius = def.spiral_radius or 0.1,
@@ -788,15 +845,25 @@ function fireworks_reimagined.register_firework_entity(name, def)
 		color1 = nil,
 		color2 = nil ,
 		on_activate = function(self, staticdata, dtime_s)
+			-- Set defaults before the callback runs so it can override them.
+			self.time_remaining = def.time_remaining or math.random(2.3, 2.7)
+			self.drift_accel_x = (math.random() - 0.5) * 15
+			self.drift_accel_z = (math.random() - 0.5) * 15
+			self.object:set_armor_groups({immortal = 1})
+			self.object:set_velocity({x=0, y=20, z=0})
+
 			if def.on_activate ~= nil then
 				def.on_activate(self, staticdata, dtime_s)
 			end
-			self.object:set_armor_groups({immortal = 1})
-			core.sound_play(self.launch_noise, {
-				max_hear_distance = 100,
-				gain = 10.0,
-				object = self.object,
-			})
+
+			if self.launch_noise then
+				core.sound_play(self.launch_noise, {
+					max_hear_distance = 100,
+					gain = 0.7,
+					object = self.object,
+				})
+			end
+
 			if self.spiral == true and self.spiral_force > 0 then
 				self.velocity = self.spiral_force
 				self.spiraling = true
@@ -807,7 +874,6 @@ function fireworks_reimagined.register_firework_entity(name, def)
 		end,
 		collision = function(self)
 			local pos = self.object:get_pos()
-			local vel = self.object:get_velocity()
 			local x   = 0
 			local z   = 0
 			for _,object in ipairs(core.get_objects_inside_radius(pos, 1)) do
@@ -845,30 +911,23 @@ function fireworks_reimagined.register_firework_entity(name, def)
 					self.object:set_acceleration({x=(x - vel.x + c_x)*self.acceleration,y=(gravity-vel.y)*self.acceleration,z=(z - vel.z + c_z)*self.acceleration})
 				end
 			else
-				self.object:set_velocity({x=0, y=20, z=0})
+				local acc_y = self.thrust > 0 and self.thrust or -10
+				self.object:set_acceleration({
+					x = self.drift_accel_x or 0,
+					y = acc_y,
+					z = self.drift_accel_z or 0
+				})
 			end
 		end,
 		on_step = function(self, dtime)
 			local pos = self.object:get_pos()
 			if not pos then return end
 
-			local velocity = self.object:get_velocity()
-
-			local entity_type = self.spiral and "spiral" or "default"
-
 			self.movement(self)
-			pos.y = pos.y + (self.initial_properties.velocity * dtime)
-			self.time_remaining = self.time_remaining - dtime
+			self.time_remaining = (self.time_remaining or 0) - dtime
 			if self.time_remaining <= 0 then
-				local colors = {}
-				if self.color1 then table.insert(colors, self.color1) end
-				if self.color2 then table.insert(colors, self.color2) end
-
-				def.firework_explosion(pos, self.color1, self.color2)
-
-				fireworks_reimagined.create_explosion_finale_effects(pos, self.firework_shape, colors)
-				fireworks_reimagined.create_explosion_sound_effects(pos, self.firework_shape)
-
+				explosion_callback(pos, self.color1, self.color2)
+				fireworks_reimagined.create_explosion_sound_effects(pos, self.firework_shape or "sphere")
 				self.object:remove()
 			end
 		end,

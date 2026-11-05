@@ -18,6 +18,8 @@ read_globals = {
     -- mods
     "mesecon",
     "mcl_formspec",
+    "mcl_redstone",
+    "mcl_sounds",
 }
 
 ignore = {

@@ -4,7 +4,7 @@ api/particles.lua:
 
  - **local function get_eligible_players:**
  
- * This function was a rather last minute one, I realized that <5.14 players and servers would have problems performantly running the fireworks. I wrote this function, but like many, it turned out to be a mess of code duplication. I utilized ChatGPT to organize this. The end LOC remained the same, but code output was cleaner. 4 LOC were removed by ChatGPT with a few other pieces modified.
+ * This function was a rather last minute one, I realized that <5.14 players and servers would have problems performantly running the fireworks. I wrote this function, but like many, it turned out to be a mess of code duplication. I utilized ChatGPT to organize and rewrite it this. The end LOC remained the same, but code output was cleaner. 4 LOC were removed by ChatGPT with a few other pieces modified.
 
  - **local function get_particle_variations:**
  
@@ -48,15 +48,15 @@ api/registration.lua:
  
 effects/explosions.lua:
 
- * Written by me.
+ * Written by me initially, heavily edited by ai.
  
 utilities dir:
 
- * Written by me.
+ * Written by me initially, heavily edited by ai.
  
 colored.lua:
 
- * Written by me initially, updated by ChatGPT and Gemini a bit when updating register_firework_node function
+ * Written by me initially, updated by ChatGPT and Gemini
  
 images.lua:
 
@@ -70,5 +70,4 @@ misc.lua:
 
  * Written by me.
  
- 
-Code cleanup still has yet to be completed so please, don't be too judgemental ;)
+This is not a purely exhaustive list. Some functions were written by other contributors, others by me, and others by various different ai LLM versions.

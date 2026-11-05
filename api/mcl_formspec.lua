@@ -13,13 +13,18 @@ function fireworks_reimagined.build_mcl_settings_formspec(pos, player_name, is_o
 	local spos = pos.x .. "," .. pos.y .. "," .. pos.z
 	
 	local allow_others = meta:get_string("allow_others") == "true" and "true" or "false"
-	local delay = meta:get_int("delay") or 0
-	
+	local delay = meta:get_string("admin_delay")
+	if delay == "" then
+		-- Migrate values saved by older versions that used the "delay" key.
+		delay = meta:get_string("delay")
+	end
+	delay = math.max(0, math.min(300, tonumber(delay) or 0))
+
 	local is_admin = privs.fireworks_admin
 	local label_color = mcl_formspec_lib.label_color or "#313131"
-	
-	local formspec_parts = {}
-	
+
+	local formspec_parts
+
 	if not is_admin then
 		formspec_parts = {
 			"formspec_version[6]",
@@ -51,7 +56,7 @@ function fireworks_reimagined.build_mcl_settings_formspec(pos, player_name, is_o
 			
 			"checkbox[0.4,1.5;allow_others;" .. F("Allow others to launch this firework") .. ";" .. allow_others .. "]",
 			
-			"field[0.4,2.5;7,0.5;delay;" .. F("Launch Delay (seconds):") .. ";" .. delay .. "]",
+			"field[0.4,2.5;7,0.5;admin_delay;" .. F("Launch Delay (seconds):") .. ";" .. delay .. "]",
 			
 			"button_exit[2.9,3.4;2,1;save;Close]",
 		}

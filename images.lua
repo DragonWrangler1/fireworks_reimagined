@@ -1,7 +1,6 @@
 local has_mcl = core.get_modpath("mcl_core") ~= nil
 local has_mcl_dyes = core.get_modpath("mcl_dye") ~= nil
 
-local stick_item = has_mcl and "mcl_core:stick" or "default:stick"
 local tnt_item = has_mcl and "mcl_tnt:tnt" or "tnt:tnt"
 local enable_crafting = core.settings:get_bool("fireworks_enable_crafting", true)
 
@@ -26,7 +25,7 @@ fireworks_reimagined.register_firework_entity("fireworks_reimagined:year_firewor
 	end
 })
 
-fireworks_reimagined.register_firework_node("fireworks_year.png", "year", "fireworks_reimagined:year_firework_entity", 10, 10)
+fireworks_reimagined.register_firework_node("fireworks_year.png", "year", "year", "fireworks_reimagined:year_firework_entity", 10, 10)
 
 if enable_crafting then
 	core.register_craft({
@@ -38,8 +37,6 @@ if enable_crafting then
 		},
 	})
 end
-
-minetest.register_alias("fireworks_reimagined:firework_2025", "fireworks_reimageined:firework_year")
 
 --===============--
 --=== CREEPER ===--
@@ -70,7 +67,7 @@ if core.get_modpath("mcl_core") or core.get_modpath("vlf_core") then
 		end
 	})
 
-	fireworks_reimagined.register_firework_node("fireworks_creeper.png", "creeper", "fireworks_reimagined:creeper_firework_entity", 10, 10)
+	fireworks_reimagined.register_firework_node("fireworks_creeper.png", "creeper", "creeper", "fireworks_reimagined:creeper_firework_entity", 10, 10)
 
 	if enable_crafting then
 		core.register_craft({

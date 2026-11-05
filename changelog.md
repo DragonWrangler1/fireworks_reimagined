@@ -53,3 +53,38 @@ This includes useful changes only. Oldest at the top, Newest at the bottom.
 * **Added dye-based secondary color selection through shapeless crafting.**
 * **Enhanced node registration with customizable tiles and overlay textures.** 
 * **Improved entity handling and particle system architecture for better performance and maintainability. Namely. Greatly utilizing Luatic's new packet batch for particles as well as yl_whosit's baseline for the burst firework**
+
+## Nov. 2026
+#### V7
+
+* [Commit ? - V7 fireworks](https://github.com/DragonWrangler1/fireworks_reimagined/commit/????)
+* **Current content count: by default, 11 primary colors × 9 shapes = 99**
+  **firework blocks (reduced when `fireworks_enabled_shapes` disables shapes).**
+  **Each block supports 11 secondary-color dye options. The older “8 primary**
+  **colors / 72 blocks” note above describes a historical version.**
+* **Particles: added additive blending, corrected alpha-tween units to 0.0–1.0, and clamped glow to 14.**
+* **Gameplay/protection: right-click authorization now runs before owner**
+  **claim, counter reset, fuse use, or launch. `busy_until` is enforced, loaded**
+  **fuses set the launch delay for non-privileged players, and `fireworks_master`**
+  **/ `fireworks_admin` bypass launch cooldowns and the nearby-rocket limit.**
+  **Delayed launches validate the node and owner, and `on_dig` drops stored fuses**
+  **only after a successful dig. Repeated place-button events are debounced so**
+  **holding the button cannot launch the same firework twice.**
+* **Redstone fix: the redstone output pulse now passes a proper vector to**
+  **`mcl_redstone.swap_node`, which requires vector methods on the position.**
+* **Data: corrected MineClone item names and the Green/DarkGreen dye mapping,**
+  **and separated`admin_delay` from the transient fuse delay.**
+* **Redstone: `fireworks_enable_mesecons` now gates input and output, and MCL**
+  **redstone uses the same busy/manual-refill rules as mesecons.**
+* **Visuals: coherent tilted sphere rings, star sparkles at the tips, a**
+  **branched snowflake, a dual-cone hourglass, a radius-aware flame, and centered**
+  **overlay icons.**
+* **Shape selection: added `fireworks_enabled_shapes` to register only the**
+  **selected standard shapes. Recipes, nodes, and entities follow the selection;**
+  **disabled shapes are unregistered. The opt-in**
+  **`fireworks_alias_disabled_shapes` setting can alias removed shape names to the**
+  **preferred legacy shape (burst when enabled, otherwise the first enabled**
+  **shape; default false).**
+* **Docs/settings: added `README.md`, rewrote `api.md` against the current**
+  **implementation, fixed `settingtypes.txt` comments/ranges, added**
+  **`min_minetest_version = 5.14.0`, and removed dead files and exports.**

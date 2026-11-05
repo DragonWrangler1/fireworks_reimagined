@@ -1,583 +1,231 @@
-# Fireworks Reimagined API Documentation
+This is the guide to the FIREWORKS REIMAGINED api.
 
-## Overview
+This guide is here to help you registering your new fireworks. It describes the public API exposed by fireworks_reimagined. The mod targets Luanti 5.14+ (particle texture tweens and modern particle spawners).
 
-The Fireworks Reimagined mod provides a comprehensive API for creating spectacular firework displays with realistic physics, enhanced visual effects, and advanced control systems. This API supports everything from simple particle explosions to complex grid-based image fireworks.
+The global table fireworks_reimagined is created by init.lua.
 
-## Table of Contents
-
-1. [Core Firework Functions](#core-firework-functions)
-2. [Node Registration](#node-registration)
-3. [Entity Registration](#entity-registration)
-4. [Color System](#color-system)
-5. [Particle System](#particle-system)
-6. [Shape System](#shape-system)
-7. [Effects System](#effects-system)
-8. [Available Shapes](#available-shapes)
-9. [Color Functions](#color-functions)
-10. [Examples](#examples)
-
----
-
-## Core Firework Functions
-
-### `fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color_def, color_def_2, alpha, texture, psize)`
-
-Creates an enhanced particle explosion with realistic physics and multi-layered effects.
-
-**Parameters:**
-- `pos` (table): Position vector `{x, y, z}` where the explosion occurs
-- `shape` (string): Firework shape (see [Available Shapes](#available-shapes))
-- `double` (boolean): Whether to create a double explosion effect
-- `color_def` (string): Primary color in hex format (e.g., "#FF0000")
-- `color_def_2` (string, optional): Secondary color for multi-color effects
-- `alpha` (number, optional): Transparency value (0-255, default: 128)
-- `texture` (string, optional): Custom particle texture
-- `psize` (number, optional): Particle size multiplier
-
-**Features:**
-- Enhanced particle physics with realistic acceleration and drag
-- Multi-layered particle systems with trails and breaking effects
-- Wind simulation and environmental effects
-- Scale and alpha tweening animations
-- Dynamic glow effects based on particle type
-
-**Example:**
-```lua
--- Create a golden sphere firework
+### QUICK START
+```
+-- Launch a single particle firework.
 fireworks_reimagined.spawn_firework_explosion(
-    {x = 0, y = 50, z = 0},
-    "sphere",
-    false,
-    "#FFD700",
-    "#FF4500",
-    150,
-    nil,
-    3.0
+    pos,            -- vector
+    "sphere",       -- shape name
+    nil,            -- double (deprecated, ignored)
+    "#FF0000",      -- primary color
+    "#FFFF00",      -- secondary color (optional, defaults to primary)
+    "255",          -- colorize alpha, 0-255
+    nil,            -- base texture (optional)
+    nil             -- particle size (optional, absolute)
 )
-```
 
-### `fireworks_reimagined.register_firework_explosion(pos, delay, color_grid, depth_layers, texture, batch_size, log)`
-
-Creates complex firework patterns from color grids (for image-based fireworks).
-
-**Parameters:**
-- `pos` (table): Center position
-- `delay` (number): Explosion delay in seconds
-- `color_grid` (table): 2D array of hex colors
-- `depth_layers` (number): Number of 3D depth layers
-- `texture` (string, optional): Base texture
-- `batch_size` (number, optional): Particles per batch (default: 10)
-- `log` (boolean, optional): Enable performance logging
-
----
-
-## Node Registration
-
-### `fireworks_reimagined.register_firework_node(tiles, shape, entity, cooldown, mese_cooldown, ip, options)`
-
-Registers a firework launcher node with advanced configuration options.
-
-**Parameters:**
-- `tiles` (string or table): Node texture filename(s)
-- `shape` (string): Firework shape
-- `entity` (string): Associated entity name
-- `cooldown` (number): Cooldown time in seconds
-- `mese_cooldown` (number): Mesecon activation cooldown
-- `ip` (boolean): Use individual particle system
-- `options` (table, optional): Additional configuration options
-
-**Options Table:**
-- `description` (string): Custom node description
-- `primary_color` (number): Primary color index (1-8)
-- `tiles` (table): Override tiles array
-- `on_construct` (function): Custom on_construct callback
-- `on_punch` (function): Custom on_punch callback
-- `on_rightclick` (function): Custom on_rightclick callback
-- `on_dig` (function): Custom on_dig callback
-- `on_place` (function): Custom on_place callback
-- `overlay_tiles` (table): Additional overlay textures
-
-**Features:**
-- Owner-based protection system
-- Configurable delays via formspec
-- Multi-colored firework support via node param2
-- Inventory management for fuses
-- Admin bypass with `fireworks_master` privilege
-- Mesecon support for automated triggering
-
-**Example:**
-```lua
+-- Register a node that launches a registered firework entity.
 fireworks_reimagined.register_firework_node(
-    "fireworks_sphere.png",
-    "sphere",
-    "fireworks_reimagined:firework_entity",
-    5.0,
-    2.0,
-    true,
-    {
-        description = "Sphere Firework Launcher",
-        primary_color = 1
-    }
+    nil, "red_ring", "ring", "fireworks_reimagined:red_ring_firework_entity"
 )
 ```
 
----
 
-## Entity Registration
-
-### `fireworks_reimagined.register_firework_entity(name, def)`
-
-Registers a firework rocket entity with realistic flight physics and trail systems.
-
-**Parameters:**
-- `name` (string): Entity name (e.g., "mymod:rocket")
-- `def` (table): Entity definition with the following fields:
-  - `firework_shape` (string): Shape for explosion (see [Available Shapes](#available-shapes))
-  - `time_remaining` (number): Flight time in seconds
-  - `spiral` (boolean): Enable spiral flight pattern
-  - `spiral_force` (number): Spiral intensity (default: 100)
-  - `spiral_radius` (number): Spiral radius (default: 0.1)
-  - `thrust` (number): Upward thrust force (default: 15)
-  - `firework_explosion` (function): Explosion callback function(pos, color1, color2)
-  - `on_activate` (function, optional): Activation callback
-
-**Features:**
-- Realistic thrust physics with customizable acceleration
-- Enhanced trail systems with particle effects
-- Spiral or straight flight patterns
-- Collision detection with players and mobs
-- Static save disabled for performance
-
-**Example:**
-```lua
-fireworks_reimagined.register_firework_entity("mymod:custom_rocket", {
-    firework_shape = "sphere",
-    time_remaining = 3.0,
-    spiral = false,
-    spiral_force = 100,
-    spiral_radius = 0.1,
-    thrust = 15,
-    firework_explosion = function(pos, color1, color2)
-        fireworks_reimagined.spawn_firework_explosion(
-            pos, "sphere", false, color1, color2
-        )
-    end
-})
+### FIREWORK SHAPES
+* fireworks_reimagined.register_shape_function(name, func)
+```
+register_shape_function: allows you to register a custom shape function.
 ```
 
----
+The built-in shape names are sphere, star, ring, burst, spiral, chaotic, flame, snowflake, and hour_glass.
 
-## Color System
+Unknown shape names fall back to sphere and log a warning. Custom shapes can be added with register_shape_function.
 
-### `fireworks_reimagined.color_palette`
+A shape function receives the particle spawning helper as its final argument. Call it with a velocity vector and an optional options table. Supported options:
 
-A table containing the available color definitions:
+* **pos_offset** offsets the spawn position from the explosion center.
+* **size_mult** multiplies the base particle size.
+* **glow_mult** multiplies the base glow (clamped to 14).
+* **lifetime_mult** multiplies the particle lifetime.
+* **accel_mult** multiplies the computed acceleration.
+* **custom_accel** uses a fixed acceleration vector.
+* **no_wind** disables the ambient wind drift.
 
-```lua
-{
-    {name = "Red", hex = "#FF0000"},
-    {name = "Yellow", hex = "#FFFF00"},
-    {name = "Blue", hex = "#0404B4"},
-    {name = "White", hex = "#FFFFFF"},
-    {name = "Orange", hex = "#FF903F"},
-    {name = "Green", hex = "#008000"},
-    {name = "Violet", hex = "#6600CC"},
-    {name = "Cyan", hex = "#00C0C0"},
-}
+Registered shapes are stored in fireworks_reimagined.shape_functions.
+
+The standard shape blocks are filtered by the fireworks_enabled_shapes setting. Shape functions remain registered regardless of that setting, so custom nodes can still use any built-in shape. Use fireworks_reimagined.is_shape_enabled(name) or fireworks_reimagined.get_enabled_shapes() to inspect the selection. The special year and creeper fireworks are not part of this list. Disabled shapes are unregistered; set fireworks_alias_disabled_shapes to true to alias their old names to the preferred legacy shape (burst when enabled, otherwise the first enabled shape).
+
+#### EXAMPLE USAGE
+* **fireworks_reimagined.register_shape_function** can be used to add a custom shape to your mod. In this example a heart shape is registered, and it receives the particle spawning helper as its final argument. Call that helper with a velocity vector and an optional options table to spawn each particle.
 ```
-
-### `fireworks_reimagined.encode_colors(color1_idx, color2_idx)`
-
-Encodes two color indices into a single param2 value for node storage.
-
-**Parameters:**
-- `color1_idx` (number): Primary color index (1-8)
-- `color2_idx` (number): Secondary color index (1-8)
-
-**Returns:** Encoded param2 value
-
-### `fireworks_reimagined.decode_colors(param2)`
-
-Decodes a param2 value back into color indices.
-
-**Parameters:**
-- `param2` (number): Encoded param2 value
-
-**Returns:** color1_idx, color2_idx
-
-### `fireworks_reimagined.get_color_by_index(idx)`
-
-Gets hex color string from index.
-
-**Parameters:**
-- `idx` (number): Color index (1-8)
-
-**Returns:** Hex color string (e.g., "#FF0000")
-
----
-
-## Particle System
-
-### `fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color_def, color_def_2, alpha, texture, psize)`
-
-See [Core Firework Functions](#core-firework-functions) for details.
-
-### `fireworks_reimagined.register_firework_explosion(pos, delay, color_grid, depth_layers, texture, batch_size, log)`
-
-Creates complex firework patterns from color grids (for image-based fireworks).
-
-**Parameters:**
-- `pos` (table): Center position `{x, y, z}`
-- `delay` (number): Explosion delay in seconds
-- `color_grid` (table): 2D array of hex colors
-- `depth_layers` (number): Number of 3D depth layers
-- `texture` (string, optional): Base texture
-- `batch_size` (number, optional): Particles per batch (default: 1)
-- `log` (boolean, optional): Enable performance logging
-
-**Features:**
-- Multi-stage explosion with initial flash and core ignition
-- Primary grid explosion with color-based particles
-- Atmospheric pressure waves with expanding rings
-
-### `fireworks_reimagined.get_enhanced_particle_texture(color, alpha, particle_type)`
-
-Returns an enhanced texture string for particles with colorization and effects.
-
-**Parameters:**
-- `color` (string): Hex color string
-- `alpha` (number): Transparency value (0-255)
-- `particle_type` (string): Particle type ("default", "sparkle", "smoke", "flame", "trail")
-
-**Returns:** Texture string with colorization and effects applied
-
-### `fireworks_reimagined.get_particle_variations(color_def, color_def_2, alpha)`
-
-Returns particle property variations for burst-type fireworks.
-
-**Parameters:**
-- `color_def` (string): Primary color hex
-- `color_def_2` (string): Secondary color hex
-- `alpha` (number): Transparency value
-
-**Returns:** Table with spark_props, break_props, and break_props1
-
-### `fireworks_reimagined.scale_particle_count(base_count)`
-
-Scales particle count for performance optimization.
-
-**Parameters:**
-- `base_count` (number): Base particle count
-
-**Returns:** Scaled particle count
-
----
-
-## Shape System
-
-### `fireworks_reimagined.shape_functions`
-
-A table containing registered shape functions. Shape functions define particle behavior and distribution patterns.
-
-**Available Shapes:**
-- sphere, star, ring, snowflake, spiral, hour_glass, burst, chaotic, flame
-
-### `fireworks_reimagined.register_shape_function(name, func)`
-
-Registers a custom shape function.
-
-**Parameters:**
-- `name` (string): Shape name
-- `func` (function): Shape function with signature: `func(pos, radius, size, glow, eligible_players, color_def, color_def_2, explosion_colors, alpha, texture, spawn_colored_particle_func)`
-
-**Example:**
-```lua
-fireworks_reimagined.register_shape_function("custom_shape", function(
-    pos, radius, size, glow, eligible_players, color_def, color_def_2, 
-    explosion_colors, alpha, texture, spawn_colored_particle_func)
-    -- Custom particle spawning logic here
+fireworks_reimagined.register_shape_function("heart", function(
+    pos, radius, size, glow, eligible_players, color_def, color_def_2,
+    explosion_colors, alpha, texture, spawn_particle
+)
+    -- spawn_particle(velocity, opts)
 end)
 ```
 
----
+* **fireworks_reimagined.register_shape_function** is used to register custom shape functions.
 
-## Effects System
 
-### `fireworks_reimagined.create_explosion_finale_effects(pos, firework_shape, colors)`
-
-Creates additional finale effects after an explosion.
-
-**Parameters:**
-- `pos` (table): Explosion position
-- `firework_shape` (string): The firework shape that exploded
-- `colors` (table): Array of hex color strings
-
-**Features:**
-- Shape-specific finale effects
-- Secondary explosions and cascades
-
-### `fireworks_reimagined.create_explosion_sound_effects(pos, firework_shape)`
-
-Plays shape-appropriate sound effects for an explosion.
-
-**Parameters:**
-- `pos` (table): Explosion position
-- `firework_shape` (string): The firework shape that exploded
-
-**Features:**
-- Shape-specific pitch and gain settings
-- Echo/reverb effects based on shape
-- Maximum hear distance of 180 blocks
-
----
-
-## Available Shapes
-
-The mod includes 9 different firework shapes with unique particle distribution patterns:
-
-| Shape | Description | Special Features |
-|-------|-------------|------------------|
-| `sphere` | Classic spherical burst | Golden angle distribution, perfect symmetry |
-| `star` | Star-shaped explosion | 3D rays with sparkle tips and tips bursts |
-| `ring` | Ring-shaped pattern | Multi-layer expanding rings |
-| `burst` | Chaotic burst pattern | Multi-property particle variations |
-| `spiral` | Spiral pattern | Rotating upward motion with wobble |
-| `chaotic` | Random chaotic pattern | Five different chaos algorithms |
-| `flame` | Flame-like effect | Realistic fire physics with flicker |
-| `snowflake` | Snowflake pattern | Six-armed crystalline structure |
-| `hour_glass` | Hourglass shape | Dual-cone spiral formation |
-
----
-
-## Color Functions
-
-### `fireworks_reimagined.random_color()`
-
-Generates a random bright color.
-
-**Returns:** Hex color string
-
-**Features:**
-- Ensures at least one RGB channel is > 200 for bright colors
-- Random selection from infinite color space
-
-### `fireworks_reimagined.get_vibrant_color()`
-
-Selects a random color from the vibrant color palette.
-
-**Returns:** Hex color string from the palette
-
-**Vibrant Palette:**
-- Deep Pink (`#FF1493`)
-- Cyan (`#00FFFF`)
-- Gold (`#FFD700`)
-- Orange Red (`#FF4500`)
-- Lime Green (`#32CD32`)
-- Blue Violet (`#8A2BE2`)
-- Hot Pink (`#FF69B4`)
-- Medium Spring Green (`#00FA9A`)
-- Tomato (`#FF6347`)
-- Dodger Blue (`#1E90FF`)
-- Yellow (`#FFFF00`)
-- Red (`#FF0000`)
-- Lime (`#00FF00`)
-- Blue (`#0000FF`)
-- Magenta (`#FF00FF`)
-- White (`#FFFFFF`)
-
-### `fireworks_reimagined.get_color_transition(color1, color2, progress)`
-
-Blends between two colors smoothly.
-
-**Parameters:**
-- `color1` (string): Starting hex color
-- `color2` (string): Ending hex color
-- `progress` (number): Blend progress (0.0 to 1.0)
-
-**Returns:** Interpolated hex color string
-
-**Example:**
-```lua
-local color = fireworks_reimagined.get_color_transition("#FF0000", "#0000FF", 0.5)
--- Returns a blend of red and blue
+### FIREWORK NORMAL EXPLOSIONS
+* fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color_def, color_def_2, alpha, texture, psize)
+```
+spawn_firework_explosion: allows you to spawn the full visual explosion at pos.
 ```
 
-### `fireworks_reimagined.random_explosion_colors()`
+* **pos** is the explosion center.
+* **shape** controls the shape of the firework that occurs. Unknown names fall back to sphere.
+* **double** is deprecated and ignored. It is kept for source compatibility.
+* **color_def** when defined the fireworks will be this #RRGGBB color. Otherwise it defaults to #FFFFFF.
+* **color_def_2** is the secondary color and defaults to color_def.
+* **alpha** if defined sets the colorize alpha in the 0 to 255 range. Otherwise it defaults to 128.
+* **texture** is the base texture used for particles.
+* **psize** is the absolute base particle size.
 
-Generates random colors for an explosion.
+The explosion consists of:
 
-**Returns:** Table with 1-2 random colors
+1. An initial soft cloud.
+2. The shape-specific particle pattern.
+3. Old-client particlespawner fallbacks (clients below 5.14).
 
-**Features:**
-- 70% chance of vibrant colors
-- 30% chance of completely random colors
-- 50/50 chance of single or dual color selection
 
----
+* **fireworks_reimagined.spawn_firework_explosion** is used to spawn normal firework explosions. This can result in some impressive firework displays.
 
-## Examples
 
-### Basic Sphere Firework
-```lua
--- Simple red sphere firework
-fireworks_reimagined.spawn_firework_explosion(
-    {x = 0, y = 50, z = 0},
-    "sphere",
-    false,
-    "#FF0000",
-    "#FFFF00",
-    128
-)
+### FIREWORK GRID EXPLOSIONS
+* fireworks_reimagined.register_firework_explosion(pos, delay, color_grid, depth_layers, texture, batch_size, log)
+```
+register_firework_explosion: schedules a grid/image firework explosion.
 ```
 
-### Multi-Color Explosion
-```lua
--- Golden ring with orange secondary color
-fireworks_reimagined.spawn_firework_explosion(
-    {x = 0, y = 60, z = 0},
-    "ring",
-    false,
-    "#FFD700",
-    "#FF4500",
-    180,
-    nil,
-    4.0
-)
+* **pos** is the explosion center.
+* **delay** is the number of seconds before the grid appears.
+* **color_grid** is a 2D array of #RRGGBB strings. #000000 is transparent.
+* **depth_layers** is the number of Z layers. Defaults to 1.
+* **texture** is the base texture. Defaults to fireworks_white.png.
+* **batch_size** is the number of positions per particle spawner. Defaults to 1; values below 1 are clamped to 1.
+* **log** logs the number of particle spawners used.
+
+
+* **fireworks_reimagined.register_firework_explosion** is used to turn a color grid into a firework image.
+
+
+### FIREWORK NODES
+* fireworks_reimagined.register_firework_node(tiles, node_name, shape, entity, cooldown, mese_cooldown, ip, options)
+```
+register_firework_node: registers a firework spawner node as fireworks_reimagined:firework_<node_name>.
 ```
 
-### Custom Firework Node
-```lua
--- Register a custom sphere launcher
-fireworks_reimagined.register_firework_node(
-    "default_cobble.png",
-    "sphere",
-    "fireworks_reimagined:firework_entity",
-    3.0,    -- 3 second cooldown
-    1.5,    -- 1.5 second mesecon cooldown
-    true,   -- Use particle effects
-    {
-        description = "Sphere Firework Launcher",
-        primary_color = 1
-    }
-)
+* **tiles** are the node tiles. A single string is repeated on all six faces.
+* **node_name** is the suffix used in the registered node name.
+* **shape** is used to pick the overlay icon and the entity launch sound.
+* **entity** is an entity registered by register_firework_entity.
+* **cooldown** is deprecated and ignored.
+* **mese_cooldown** is deprecated and ignored.
+* **ip** is deprecated and ignored.
+* **options** are described below.
+
+#### OPTIONS
+* **tiles** overrides the tiles argument.
+* **primary_color** is a palette index (1 to 11). It is used for the overlay tint and default c1.
+* **icon_overlay** is the shape icon name. It is inferred from shape when omitted. Set it to false to disable it.
+* **description** is the node description.
+* **on_punch**, **on_rightclick**, **on_dig**, **on_place**, and **on_construct** override or extend the corresponding node callbacks. on_construct is called after the fuse inventory is created.
+
+Each node gets:
+
+* A fuse inventory list (size 1, max 15 items).
+* Owner metadata (owner), allow_others, c1, and c2.
+* An admin_delay setting controlled by administrators.
+* Optional mesecons input/output and MCL redstone support.
+* Wood placement/dig sounds when a wood node is available.
+
+* **fireworks_reimagined.register_firework_node** is used to register blocks that shoot off fireworks after being right-clicked or activated with mesecons.
+
+
+### FIREWORK ENTITIES
+* fireworks_reimagined.register_firework_entity(name, def)
+```
+register_firework_entity: registers the flying rocket entity used by firework nodes.
 ```
 
-### Custom Firework Entity
-```lua
--- Register a custom rocket entity
-fireworks_reimagined.register_firework_entity("mymod:custom_rocket", {
-    firework_shape = "star",
-    time_remaining = 3.5,
-    spiral = true,
-    spiral_force = 100,
-    spiral_radius = 0.15,
-    thrust = 15,
-    firework_explosion = function(pos, color1, color2)
-        fireworks_reimagined.spawn_firework_explosion(
-            pos, "star", false, color1, color2
-        )
-    end
-})
+* **firework_shape** is the shape name used for the explosion sound. Defaults to sphere.
+* **firework_explosion** is function(pos, color1, color2). A safe sphere fallback is used when omitted.
+* **time_remaining** is the flight time in seconds. Defaults to a random value between 2.3 and 2.7.
+* **launch_noise** is the sound played on launch. No sound is played when omitted.
+* **spiral** enables spiral flight.
+* **spiral_force** is the spiral horizontal force. Defaults to 100.
+* **spiral_radius** is the spiral turn rate. Defaults to 0.1.
+* **thrust** is the upward thrust. Defaults to 15.
+* **on_activate** is an extra activation callback. It is called after the defaults are set, so it may override them.
+
+The entity removes itself after the explosion callback and plays one shape-specific explosion sound. Sound ownership lives in the entity, not in the explosion callback, so custom callbacks should not play their own sound.
+
+
+* **fireworks_reimagined.register_firework_entity** is used to register custom firework entities to be shot off by firework nodes that will have custom effects.
+
+
+### COLOR SYSTEM
+fireworks_reimagined.color_palette contains 11 entries:
+
+* **1 — White** — #FFFFFF
+* **2 — Yellow** — #FFFF00
+* **3 — Blue** — #0404B4
+* **4 — Red** — #FF0000
+* **5 — Orange** — #FF903F
+* **6 — Green** — #008000
+* **7 — Violet** — #6600CC
+* **8 — Cyan** — #00C0C0
+* **9 — Magenta** — #FF00FF
+* **10 — Pink** — #FF69B4
+* **11 — DarkGreen** — #004D00
+
+fireworks_reimagined.get_color_by_index(index) returns the hex string for an index, falling back to white for out-of-range values.
+
+fireworks_reimagined.get_particle_variations(color_def, color_def_2, alpha) returns the texture/spawner presets used by the burst shape and by the old-client fallback path. color_def_2 is normalized to color_def when nil.
+
+#### COLOR UTILITIES
+utilities/colors.lua also exposes:
+
+* fireworks_reimagined.random_color()
+* fireworks_reimagined.get_vibrant_color()
+* fireworks_reimagined.get_color_transition(color1, color2, progress)
+* fireworks_reimagined.random_explosion_colors()
+
+These helpers are public conveniences and are not used internally.
+
+
+### PARTICLE HELPERS
+* fireworks_reimagined.get_enhanced_particle_texture(color, alpha, particle_type)
+```
+get_enhanced_particle_texture: builds a colorized particle texture.
 ```
 
-### Image-Based Firework Grid
-```lua
--- Create a firework display from a color grid
-local color_grid = {
-    {"#FF0000", "#FF0000", "#FF0000"},
-    {"#FF0000", "#FFFF00", "#FF0000"},
-    {"#FF0000", "#FF0000", "#FF0000"}
-}
+particle_type may be default, sparkle, smoke, flame, or trail. Only existing textures are used, and smoke/flame/trail variants adjust opacity.
 
-fireworks_reimagined.register_firework_explosion(
-    {x = 0, y = 50, z = 0},
-    0.5,           -- delay
-    color_grid,    -- color grid
-    3,             -- depth layers
-    nil,           -- texture
-    5,             -- batch size
-    false          -- logging
-)
+* **fireworks_reimagined.get_enhanced_particle_texture** is used to build a colorized particle texture.
+
+
+* fireworks_reimagined.create_explosion_sound_effects(pos, firework_shape)
+```
+create_explosion_sound_effects: plays the single shape-specific explosion sound.
 ```
 
-### Custom Shape Registration
-```lua
--- Register a custom firework shape
-fireworks_reimagined.register_shape_function("my_shape", function(
-    pos, radius, size, glow, eligible_players, color_def, color_def_2, 
-    explosion_colors, alpha, texture, spawn_colored_particle_func)
-    
-    -- Create a simple burst with 50 particles
-    for i = 1, 50 do
-        local angle = (i / 50) * math.pi * 2
-        local velocity = {
-            x = math.cos(angle) * radius * 2,
-            y = math.random(2, 6),
-            z = math.sin(angle) * radius * 2
-        }
-        spawn_colored_particle_func(velocity)
-    end
-end)
-```
+Called automatically by registered firework entities.
 
-### Using Color Functions
-```lua
--- Get a random vibrant color
-local color = fireworks_reimagined.get_vibrant_color()
-print("Selected color: " .. color)
+* **fireworks_reimagined.create_explosion_sound_effects** is used to play the single shape-specific explosion sound.
 
--- Create a color transition
-local blend = fireworks_reimagined.get_color_transition("#FF0000", "#0000FF", 0.5)
 
--- Get explosion colors
-local colors = fireworks_reimagined.random_explosion_colors()
-for _, color_value in ipairs(colors) do
-    print("Explosion color: " .. color_value)
-end
-```
+### SETTINGS THAT AFFECT THE API
+* **fireworks_max_rockets** defaults to 2. Maximum rockets in the scan area.
+* **fireworks_scan_radius** defaults to 12. Radius used for the rocket cap.
+* **fireworks_enable_crafting** defaults to true. Enables colored firework recipes.
+* **fireworks_enabled_shapes** defaults to all nine. Comma-separated standard shapes to register.
+* **fireworks_alias_disabled_shapes** defaults to false. Alias removed shape names to the preferred legacy shape (burst when enabled).
+* **fireworks_enable_mesecons** defaults to true. Gates mesecons and MCL redstone input and output.
+* **fireworks_manual_refill** defaults to true. Requires a right-click after 10 mesecon/redstone activations.
 
----
 
-## Privileges
+### DEPRECATED API
+The following parameters are accepted for compatibility but have no effect:
 
-- **`fireworks_master`**: Bypass cooldowns and access protected fireworks
-- **`fireworks_admin`**: Administrator privileges for fireworks configuration
-- Standard players can only trigger their own fireworks unless `allow_others` is enabled
+* double in spawn_firework_explosion.
+* cooldown, mese_cooldown, and ip in register_firework_node.
 
----
-
-## Performance Notes
-
-- Particle counts are dynamically calculated based on shape complexity
-- Wind simulation adds realism without significant performance cost
-- Eligible player system ensures only visible clients render particles
-- Trail effects are applied during particle lifetime for smooth animations
-- Shape functions determine particle density and behavior
-
----
-
-## Items and Crafting
-
-### Fuse
-Used to trigger firework nodes. Can be placed in the fuse inventory slot of firework nodes.
-
-**Crafting Recipe:**
-```
-S S S
-S C S
-S S S
-```
-Where S = farming:string, C = default:coal_lump
-Yields 9 fuses
-
-### Firework Item
-A random firework craftitem that can be used directly by players. Limited to 3 uses per 4 seconds for normal players.
-
----
-
-## Compatibility Notes
-
-This API is designed for Minetest 5.14+ to support the enhanced particle tween system. The mod uses player-specific particle spawning for optimized network traffic and supports both spiral and straight flight paths for rocket entities.
-
-For best visual results, use a shape that suits your color palette and adjust particle size (`psize`) based on distance from viewer.
+create_explosion_finale_effects no longer exists.

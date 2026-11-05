@@ -42,52 +42,50 @@ end
 
 -- This is here as to not duplicate the Burst firework defs with the pre 5.14 user defs.
 local function get_particle_variations(color_def, color_def_2, alpha)
+	color_def_2 = color_def_2 or color_def
+
+	local function spark_tween()
+		return { style = "fwd", reps = 1, 1.4, 1.0, 0.2, start = 0.0, finish = 1.0 }
+	end
+
 	return {
 		spark_props = {
 			texpool = {
 				{
-					name =  "fireworks_spark_white.png^[colorize:" .. color_def .. ":" .. alpha,
-					scale_tween = { style = "fwd", reps = 1, 1.4, 1.0, 0.2, start = 0.0, finish = 1.0 },
+					name = "fireworks_spark_white.png^[colorize:" .. color_def .. ":" .. alpha,
+					scale_tween = spark_tween(),
 				},
 				{
 					name = "fireworks_spark_white.png^[colorize:" .. color_def_2 .. ":" .. alpha,
-					scale_tween = { style = "fwd", reps = 1, 1.4, 1.0, 0.2, start = 0.0, finish = 1.0 },
+					scale_tween = spark_tween(),
 				},
 				{
-					name =  "fireworks_enhanced_spark.png^[colorize:" .. color_def .. ":" .. alpha,
-					scale_tween = { style = "fwd", reps = 1, 1.4, 1.0, 0.2, start = 0.0, finish = 1.0 },
+					name = "fireworks_enhanced_spark.png^[colorize:" .. color_def .. ":" .. alpha,
+					scale_tween = spark_tween(),
 				},
 				{
 					name = "fireworks_enhanced_spark.png^[colorize:" .. color_def_2 .. ":" .. alpha,
-					scale_tween = { style = "fwd", reps = 1, 1.4, 1.0, 0.2, start = 0.0, finish = 1.0 },
+					scale_tween = spark_tween(),
 				},
 				{
-					name =  "black.png^[colorize:#FFF^[colorize:" .. color_def .. ":" .. alpha,
-					scale_tween = { style = "fwd", reps = 1, 1.4, 1.0, 0.2, start = 0.0, finish = 1.0 },
+					name = "fireworks_sparkle_enhanced.png^[colorize:" .. color_def .. ":" .. alpha,
+					scale_tween = spark_tween(),
 				},
 				{
-					name = "black.png^[colorize:#FFF^[colorize:" .. color_def_2 .. ":" .. alpha,
-					scale_tween = { style = "fwd", reps = 1, 1.4, 1.0, 0.2, start = 0.0, finish = 1.0 },
+					name = "fireworks_sparkle_enhanced.png^[colorize:" .. color_def_2 .. ":" .. alpha,
+					scale_tween = spark_tween(),
 				},
-				{
-					name =  "black.png^[colorize:" .. color_def .. ":" .. alpha,
-					scale_tween = { style = "fwd", reps = 1, 1.4, 1.0, 0.2, start = 0.0, finish = 1.0 },
-				},
-				{
-					name = "black.png^[colorize:" .. color_def_2 .. ":" .. alpha,
-					scale_tween = { style = "fwd", reps = 1, 1.4, 1.0, 0.2, start = 0.0, finish = 1.0 },
-				}
 			},
 			size = math.random(2,4) * (0.9 + math.random() * 0.6),
 			exptime = 3
 		},
 		break_props = {
 			texpool = {
-				{ 
+				{
 					name = "fireworks_spark_white.png^[colorize:" .. color_def .. ":200",
 					scale_tween = { style="fwd", reps=1, 1.0, 0.5, 0.0, start=0.0, finish=1.0 }
 				},
-				{ 
+				{
 					name = "fireworks_spark_white.png^[colorize:" .. color_def_2 .. ":200",
 					scale_tween = { style="fwd", reps=1, 1.0, 0.5, 0.0, start=0.0, finish=1.0 }
 				}
@@ -97,13 +95,13 @@ local function get_particle_variations(color_def, color_def_2, alpha)
 		},
 		break_props1 = {
 			texpool = {
-				{ 
-					name = "black.png^[colorize:#FFF^[colorize:#FFF^[colorize:" .. color_def .. ":100",
-					scale_tween = { style="fwd", reps=1, 2.0, 0.5, -0.1, start=0.0, finish=1.0 }
+				{
+					name = "fireworks_sparkle_enhanced.png^[colorize:" .. color_def .. ":100",
+					scale_tween = { style="fwd", reps=1, 2.0, 0.5, 0.0, start=0.0, finish=1.0 }
 				},
-				{ 
-					name = "black.png^[colorize:#FFF^[colorize:#FFF^[colorize:" .. color_def_2 .. ":100",
-					scale_tween = { style="fwd", reps=1, 2.0, 0.5, -0.1, start=0.0, finish=1.0 }
+				{
+					name = "fireworks_sparkle_enhanced.png^[colorize:" .. color_def_2 .. ":100",
+					scale_tween = { style="fwd", reps=1, 2.0, 0.5, 0.0, start=0.0, finish=1.0 }
 				}
 			},
 			size = math.random(2,4) * (0.9 + math.random() * 0.6) * 2.5,
@@ -154,7 +152,7 @@ local function spawn_colored_particle(pos, color_def, color_def_2, explosion_col
 	local enhanced_size = size * size_mult * (0.9 + math.random() * 0.6)
 	
 	local glow_mult = opts.glow_mult or 1.0
-	local dynamic_glow = math.floor((glow + math.random(0, 5)) * glow_mult)
+	local base_glow = math.floor(glow * glow_mult)
 	
 	local acceleration
 	if opts.custom_accel then
@@ -176,7 +174,14 @@ local function spawn_colored_particle(pos, color_def, color_def_2, explosion_col
 			z = pos.z + opts.pos_offset.z
 		}
 	end
-	
+
+	local effect_time = base_lifetime * 0.25
+	local effect_pos = {
+		x = spawn_pos.x + particle_velocity.x * effect_time + 0.5 * acceleration.x * effect_time * effect_time,
+		y = spawn_pos.y + particle_velocity.y * effect_time + 0.5 * acceleration.y * effect_time * effect_time,
+		z = spawn_pos.z + particle_velocity.z * effect_time + 0.5 * acceleration.z * effect_time * effect_time,
+	}
+
 	local particle_properties = {
 		pos = spawn_pos,
 		velocity = particle_velocity,
@@ -197,33 +202,30 @@ local function spawn_colored_particle(pos, color_def, color_def_2, explosion_col
 			alpha_tween = {
 				style = "fwd",
 				reps = 1,
-				255,
-				200,
+				1.0,
+				0.8,
 				0,
 				start = 0.0,
 				finish = 1.0
 			}
 		},
-		glow = dynamic_glow,
+		glow = math.min(14, math.max(0, base_glow)),
+		blend = "add",
 	}
 	for _, player_name in ipairs(eligible_players) do
 		particle_properties.playername = player_name
 		core.add_particle(particle_properties)
 	end
 	
-	core.after(base_lifetime * 0.25, function()
+	core.after(effect_time, function()
 		local cloud_props = {
-			pos = {
-				x = pos.x + particle_velocity.x * base_lifetime * 0.25,
-				y = pos.y + particle_velocity.y * base_lifetime * 0.25,
-				z = pos.z + particle_velocity.z * base_lifetime * 0.25
-			},
+			pos = effect_pos,
 			velocity = {x = 0, y = 0, z = 0},
 			acceleration = {x = 0, y = 0, z = 0},
 			expirationtime = 0.1,
 			size = enhanced_size * 2.5,
 			texture = {
-				name = "black.png^[colorize:#FFF^[colorize:" .. color .. ":100",
+				name = "fireworks_sparkle_enhanced.png^[colorize:" .. color .. ":100",
 				scale_tween = {
 					style = "fwd",
 					reps = 1,
@@ -232,7 +234,8 @@ local function spawn_colored_particle(pos, color_def, color_def_2, explosion_col
 					-0.1
 				}
 			},
-			glow = 15,
+			glow = 14,
+			blend = "add",
 			collisiondetection = false,
 		}
 		for _, player_name in ipairs(eligible_players) do
@@ -249,7 +252,7 @@ local function spawn_colored_particle(pos, color_def, color_def_2, explosion_col
 			}
 			
 			local breaking_particle_properties = {
-				pos = spawn_pos,
+				pos = effect_pos,
 				velocity = breaking_velocity,
 				acceleration = acceleration,
 				expirationtime = base_lifetime * 0.75,
@@ -264,7 +267,8 @@ local function spawn_colored_particle(pos, color_def, color_def_2, explosion_col
 						0.0
 					},
 				},
-				glow = math.max(5, glow - 2),
+				glow = math.min(14, math.max(0, glow - 2)),
+				blend = "add",
 			}
 			for _, player_name in ipairs(eligible_players) do
 				breaking_particle_properties.playername = player_name
@@ -272,7 +276,7 @@ local function spawn_colored_particle(pos, color_def, color_def_2, explosion_col
 			end
 			
 			local spark_props = {
-				pos = breaking_particle_properties.pos,
+				pos = effect_pos,
 				velocity = {
 					x = math.random(-100, 100) / 100,
 					y = math.random(-50, 50) / 100,
@@ -291,7 +295,8 @@ local function spawn_colored_particle(pos, color_def, color_def_2, explosion_col
 						-0.05
 					},
 				},
-				glow = 12,
+				glow = 14,
+				blend = "add",
 			}
 			for _, player_name in ipairs(eligible_players) do
 				spark_props.playername = player_name
@@ -304,30 +309,23 @@ end
 fireworks_reimagined.shape_functions = {}
 
 function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color_def, color_def_2, alpha, texture, psize)
-	
-	local explosion_color = "#FF00FF"
+	-- `double` is kept for backwards compatibility but no longer has any effect.
+	local fallback_color = "#FFFFFF"
+	color_def = color_def or fallback_color
+	color_def_2 = color_def_2 or color_def
+	shape = shape or "sphere"
+	alpha = tonumber(alpha) or 128
+
 	local radius = math.random(4, 7)
-	local size
-	local color
-	local colored_texture
+	local size = psize or math.random(2, 4)
+	local glow = math.min(14, math.random(12, 15))
 
 	local eligible_players, old_client = get_eligible_players()
-
-	if psize then
-		size = psize
-	else
-		size = math.random(2, 4)
-	end
-	local glow = math.random(12, 15)
-	
-	if not alpha then
-		alpha = 128
-	end
 
 	local spawn_colored_particle_wrapper = function(velocity, opts)
 		return spawn_colored_particle(pos, color_def, color_def_2, nil, alpha, texture, size, glow, eligible_players, velocity, opts)
 	end
-	
+
 	local initial_cloud = {
 		pos = pos,
 		velocity = {x = 0, y = 0, z = 0},
@@ -335,7 +333,7 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 		expirationtime = 0.15,
 		size = radius * 3,
 		texture = {
-			name = "black.png^[colorize:#FFF^[colorize:" .. (color_def or explosion_color) .. ":80",
+			name = "fireworks_sparkle_enhanced.png^[colorize:" .. color_def .. ":80",
 			scale_tween = {
 				style = "fwd",
 				reps = 1,
@@ -346,38 +344,29 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 			alpha_tween = {
 				style = "fwd",
 				reps = 1,
-				255,
-				100,
-				0
+				1.0,
+				0.4,
+				0.0
 			}
 		},
-		glow = 15,
+		glow = 14,
+		blend = "add",
 		collisiondetection = false,
 	}
 	for _, player_name in ipairs(eligible_players) do
 		initial_cloud.playername = player_name
 		core.add_particle(initial_cloud)
 	end
-	
-	local pitch_variation = 0.8 + math.random() * 0.6
-	local gain_variation = 0.7 + math.random() * 0.4
-	
-	-- The idea is for this to add an extra echo for these shapes.
-	if shape == "burst" or shape == "spiral" then
-		core.after(0.3, function()
-			core.sound_play("fireworks_explosion.ogg", {
-				pos = pos,
-				gain = gain_variation * 0.3,
-				pitch = pitch_variation * 0.8,
-				max_hear_distance = 150,
-			})
-		end)
-	end
 
 	local shape_spawner = fireworks_reimagined.shape_functions[shape]
+	if not shape_spawner then
+		core.log("warning", "[fireworks_reimagined] Unknown firework shape '" .. tostring(shape) .. "'; using sphere.")
+		shape_spawner = fireworks_reimagined.shape_functions.sphere
+	end
 	if shape_spawner then
 		shape_spawner(pos, radius, size, glow, eligible_players, color_def, color_def_2, nil, alpha, texture, spawn_colored_particle_wrapper)
 	end
+
 	local base_props = {
 		amount = 600,
 		time = 0.01,
@@ -399,11 +388,12 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 		collisiondetection = false,
 		collision_removal = false,
 		glow = 14,
+		blend = "add",
 	}
 
 	local variations = get_particle_variations(color_def, color_def_2, alpha)
 	for _, player_name in ipairs(old_client) do
-		for _, key in ipairs({"spark_props", "break_props1", "break_props"}) do				
+		for _, key in ipairs({"spark_props", "break_props1", "break_props"}) do
 			local props = table.copy(base_props)
 			for k,v in pairs(variations[key]) do
 				props[k] = v

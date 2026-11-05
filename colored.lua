@@ -1,11 +1,13 @@
-local create_explosion_sound_effects = fireworks_reimagined.create_explosion_sound_effects
-local create_explosion_finale_effects = fireworks_reimagined.create_explosion_finale_effects
-
-local shapes = {"sphere", "star", "ring", "burst", "spiral", "chaotic", "flame", "snowflake", "hour_glass"}
+local shapes = fireworks_reimagined.get_enabled_shapes()
+local all_shapes = fireworks_reimagined.known_shapes
+local default_shape = shapes[1] or "burst"
+-- Legacy item aliases historically pointed at burst. If burst is disabled,
+-- point them at the first enabled shape instead of an unregistered node.
+local legacy_shape = fireworks_reimagined.is_shape_enabled("burst") and "burst" or default_shape
+local alias_disabled_shapes = core.settings:get_bool("fireworks_alias_disabled_shapes", false)
 local palette = fireworks_reimagined.color_palette
 
 local has_mcl = core.get_modpath("mcl_core") ~= nil
-local has_default = core.get_modpath("default") ~= nil
 local has_mcl_dyes = core.get_modpath("mcl_dye") ~= nil
 
 local stick_item = has_mcl and "mcl_core:stick" or "default:stick"
@@ -19,7 +21,7 @@ if has_mcl_dyes then
 		Blue = "mcl_dye:blue",
 		White = "mcl_dye:white",
 		Orange = "mcl_dye:orange",
-		Green = "mcl_dye:dark_green",
+		Green = "mcl_dye:green",
 		Violet = "mcl_dye:violet",
 		Cyan = "mcl_dye:cyan",
 		Magenta = "mcl_dye:magenta",
@@ -157,11 +159,9 @@ for color_idx, color_def in ipairs(palette) do
 		local entity_name = "fireworks_reimagined:" .. color_name .. "_" .. shape_name .. "_firework_entity"
 
 		fireworks_reimagined.register_firework_entity(entity_name, {
+			firework_shape = shape_name,
 			firework_explosion = function(pos, color1, color2)
 				fireworks_reimagined.spawn_firework_explosion(pos, shape_name, nil, color1, color2, "255", nil, nil)
-				local colors = {color1, color2}
-				create_explosion_finale_effects(pos, shape_name, colors)
-				create_explosion_sound_effects(pos, shape_name)
 			end
 		})
 	end
@@ -172,10 +172,10 @@ for color_idx, color_def in ipairs(palette) do
 		local reg_options = {
 			primary_color = color_idx,
 			description = shape_name:gsub("(%a)([%w]*)", function(a,b) return a:upper() .. b end):gsub("_", " ") .. " Fireworks (" .. color_name .. ")",
-			overlay_tiles = get_overlay_tiles(),
+			overlay_tiles = get_overlay_tiles()
 		}
 
-		fireworks_reimagined.register_firework_node(get_colored_tiles(color_def.hex), node_name, "fireworks_reimagined:" .. color_name .. "_" .. shape_name .. "_firework_entity", nil, nil, true, reg_options)
+		fireworks_reimagined.register_firework_node(get_colored_tiles(color_def.hex), node_name, shape_name, "fireworks_reimagined:" .. color_name .. "_" .. shape_name .. "_firework_entity", nil, nil, true, reg_options)
 
 		if enable_crafting then
 			local recipe = shape_recipes[shape_name]
@@ -205,35 +205,79 @@ for color_idx, color_def in ipairs(palette) do
 	end
 end
 
-core.register_alias("fireworks_redo:spawner_red", "fireworks_reimagined:firework_red_burst")
-core.register_alias("fireworks_redo:spawner_yellow", "fireworks_reimagined:firework_yellow_burst")
-core.register_alias("fireworks_redo:spawner_blue", "fireworks_reimagined:firework_blue_burst")
-core.register_alias("fireworks_redo:spawner_white", "fireworks_reimagined:firework_white_burst")
-core.register_alias("fireworks_redo:spawner_orange", "fireworks_reimagined:firework_orange_burst")
-core.register_alias("fireworks_redo:spawner_green", "fireworks_reimagined:firework_green_burst")
-core.register_alias("fireworks_redo:spawner_purple", "fireworks_reimagined:firework_violet_burst")
-core.register_alias("fireworks_redo:spawner_cyan", "fireworks_reimagined:firework_cyan_burst")
+local function legacy_node_name(color_name)
+	return "fireworks_reimagined:firework_" .. color_name .. "_" .. legacy_shape
+end
 
-core.register_alias("fireworks:red", "fireworks_reimagined:firework_red_burst")
-core.register_alias("fireworks:orange", "fireworks_reimagined:firework_orange_burst")
-core.register_alias("fireworks:green", "fireworks_reimagined:firework_green_burst")
-core.register_alias("fireworks:violet", "fireworks_reimagined:firework_violet_burst")
+local function legacy_alias_target_shape()
+	if alias_disabled_shapes then
+		return legacy_shape
+	end
+	-- Legacy names historically meant "burst". If burst is disabled, leave them
+	-- unregistered instead of silently choosing another shape.
+	if fireworks_reimagined.is_shape_enabled("burst") then
+		return "burst"
+	end
+	return nil
+end
+
+local function register_legacy_alias(alias_name, color_name)
+	local target_shape = legacy_alias_target_shape()
+	if not target_shape then
+		return
+	end
+	core.register_alias(alias_name, "fireworks_reimagined:firework_" .. color_name .. "_" .. target_shape)
+end
+
+register_legacy_alias("fireworks_redo:spawner_red", "red")
+register_legacy_alias("fireworks_redo:spawner_yellow", "yellow")
+register_legacy_alias("fireworks_redo:spawner_blue", "blue")
+register_legacy_alias("fireworks_redo:spawner_white", "white")
+register_legacy_alias("fireworks_redo:spawner_orange", "orange")
+register_legacy_alias("fireworks_redo:spawner_green", "green")
+register_legacy_alias("fireworks_redo:spawner_purple", "violet")
+register_legacy_alias("fireworks_redo:spawner_cyan", "cyan")
+
+register_legacy_alias("fireworks:red", "red")
+register_legacy_alias("fireworks:orange", "orange")
+register_legacy_alias("fireworks:green", "green")
+register_legacy_alias("fireworks:violet", "violet")
 
 for _, shape_name in ipairs(shapes) do
 	core.register_alias("fireworks_reimagined:firework_" .. shape_name, "fireworks_reimagined:firework_white_" .. shape_name)
 end
 
+-- Optionally keep old item/node names working when their shape is disabled by
+-- mapping them to the preferred legacy shape. This is opt-in: by default a
+-- removed shape is simply unregistered and no alias is created.
+if alias_disabled_shapes then
+	for _, shape_name in ipairs(all_shapes) do
+		if not fireworks_reimagined.is_shape_enabled(shape_name) then
+			core.register_alias("fireworks_reimagined:firework_" .. shape_name, legacy_node_name("white"))
+
+			for _, color_def in ipairs(palette) do
+				local color_name = color_def.name:lower()
+				local target = legacy_node_name(color_name)
+				local prefix = "fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name
+				core.register_alias(prefix, target)
+				core.register_alias(prefix .. "_0", target)
+				core.register_alias(prefix .. "_10", target)
+			end
+		end
+	end
+end
+
 local non_existent_shapes = {"cube", "present", "christmas_tree"}
 for _, shape_name in ipairs(non_existent_shapes) do
-	core.register_alias("fireworks_reimagined:firework_" .. shape_name, "fireworks_reimagined:firework_white_burst")
+	register_legacy_alias("fireworks_reimagined:firework_" .. shape_name, "white")
 
 	for _, color_def in ipairs(palette) do
 		local color_name = color_def.name:lower()
-		core.register_alias("fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name, "fireworks_reimagined:firework_white_burst")
+		register_legacy_alias("fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name, color_name)
 	end
 end
 
 for _, color_def in ipairs(palette) do
 	local color_name = color_def.name:lower()
-	core.register_alias("fireworks_reimagined:firework_" .. color_name, "fireworks_reimagined:firework_" .. color_name .. "_burst")
+	register_legacy_alias("fireworks_reimagined:firework_" .. color_name, color_name)
 end
