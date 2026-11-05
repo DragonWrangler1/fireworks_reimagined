@@ -635,10 +635,6 @@ function fireworks_reimagined.register_firework_node(tiles, node_name, shape, en
 				rules = mesecon.rules.pplate,
 
 				action_on = function(pos, node)
-					if not mesecons_enabled() then
-						return false
-					end
-					
 					local meta = core.get_meta(pos)
 					local now = core.get_gametime()
 
