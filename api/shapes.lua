@@ -589,13 +589,13 @@ end
 
 local function spawn_chaotic_shape(pos, radius, size, glow, eligible_players, color_def, color_def_2, explosion_colors, alpha, texture, spawn_colored_particle_func)
 	local variations = fireworks_reimagined.get_particle_variations(color_def, color_def_2, alpha)
-	local sub_explosions = math.random(10, 17)
+	local sub_explosions = math.random(13, 18)
 
 	for i = 1, sub_explosions do
 		local offset = {
-			x = math.random(-radius * 2.0, radius * 2.0),
-			y = math.random(-radius * 2.0, radius * 2.0),
-			z = math.random(-radius * 2.0, radius * 2.0)
+			x = math.random(-radius * 4.0, radius * 4.0),
+			y = math.random(-radius * 3.0, radius * 3.0),
+			z = math.random(-radius * 4.0, radius * 4.0)
 		}
 		local sub_pos = vector.add(pos, offset)
 		local delay = math.random() * 0.8
@@ -607,28 +607,21 @@ local function spawn_chaotic_shape(pos, radius, size, glow, eligible_players, co
 				gain = 6.0,
 				pitch = 1.6 + math.random() * 0.4
 			})
-			
-			spawn_colored_particle_func(vector.new(0, 0, 0), {
-				pos_offset = offset,
-				size_mult = 1,
-				glow_mult = 1.4,
-				lifetime_mult = 0.2
-			})
 
 			local base_sub_props = {
-				amount = math.random(80, 120),
-				time = 0.1,
+				amount = 15,
+				time = 0.01,
 				pos = sub_pos,
-				radius = { min = 1, max = 2.5, bias = -10000 },
+				radius = { min = 2, max = 3, bias = -10000 },
 				drag_tween = {
 					{x=1.0, y=1.0, z=1.0},
-					{x=2.0, y=1.0, z=2.0},
+					{x=3.0, y=1.0, z=3.0},
 				},
 				minvel = { x= -8 , y=10, z= -8},
 				maxvel = { x=8, y=10, z=8},
 				attract = {
 					kind = 'point',
-					strength = { min = -12.0, max = -16.5 },
+					strength = { min = -12.0, max = -18.5 },
 					origin = sub_pos,
 					direction = vector.new(0,-1,0),
 				},
@@ -639,16 +632,26 @@ local function spawn_chaotic_shape(pos, radius, size, glow, eligible_players, co
 				blend = "add",
 			}
 
-			for _, key in ipairs({"spark_props"}) do
+
+			for _, key in ipairs({"spark_props", "break_props1", "break_props"}) do
 				local props = table.copy(base_sub_props)
 				local var = variations[key]
 				props.texpool = var.texpool
 				props.minsize = var.size * 1.05
-				props.maxsize = var.size * 2.1
+				props.maxsize = var.size * 1.8
 				
-				for _, player_name in ipairs(eligible_players) do
-					props.playername = player_name
-					core.add_particlespawner(props)
+				if key == "spark_props" then
+					for _, player_name in ipairs(eligible_players) do
+						props.playername = player_name
+						core.add_particlespawner(props)
+					end
+				else
+					core.after(0.05, function()
+						for _, player_name in ipairs(eligible_players) do
+							props.playername = player_name
+							core.add_particlespawner(props)
+						end
+					end)
 				end
 			end
 		end)
