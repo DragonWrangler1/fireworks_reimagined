@@ -589,7 +589,14 @@ end
 
 local function spawn_chaotic_shape(pos, radius, size, glow, eligible_players, color_def, color_def_2, explosion_colors, alpha, texture, spawn_colored_particle_func)
 	local variations = fireworks_reimagined.get_particle_variations(color_def, color_def_2, alpha)
-	local sub_explosions = math.random(13, 18)
+	local sub_explosions = math.random(9, 14)
+	
+	core.sound_play("fireworks_explosion_multi", {
+		pos = pos,
+		max_hear_distance = 160,
+		gain = 7.0,
+		pitch = 1.6 + math.random() * 0.4,
+	})
 
 	for i = 1, sub_explosions do
 		local offset = {
@@ -601,15 +608,8 @@ local function spawn_chaotic_shape(pos, radius, size, glow, eligible_players, co
 		local delay = math.random() * 0.8
 		
 		core.after(delay, function()
-			core.sound_play("fireworks_explosion", {
-				pos = sub_pos,
-				max_hear_distance = 140,
-				gain = 6.0,
-				pitch = 1.6 + math.random() * 0.4
-			})
-
 			local base_sub_props = {
-				amount = 15,
+				amount = 60,
 				time = 0.01,
 				pos = sub_pos,
 				radius = { min = 1, max = 2, bias = -10000 },
@@ -633,7 +633,7 @@ local function spawn_chaotic_shape(pos, radius, size, glow, eligible_players, co
 			}
 
 
-			for _, key in ipairs({"spark_props", "break_props1", "break_props"}) do
+			for _, key in ipairs({"spark_props", "break_props1"}) do
 				local props = table.copy(base_sub_props)
 				local var = variations[key]
 				props.texpool = var.texpool
@@ -656,6 +656,7 @@ local function spawn_chaotic_shape(pos, radius, size, glow, eligible_players, co
 			end
 		end)
 	end
+end
 end
 
 local function spawn_flame_shape(pos, radius, size, glow, eligible_players, color_def, color_def_2, explosion_colors, alpha, texture, spawn_colored_particle_func)
