@@ -612,7 +612,7 @@ local function spawn_chaotic_shape(pos, radius, size, glow, eligible_players, co
 				amount = 15,
 				time = 0.01,
 				pos = sub_pos,
-				radius = { min = 2, max = 3, bias = -10000 },
+				radius = { min = 1, max = 2, bias = -10000 },
 				drag_tween = {
 					{x=1.0, y=1.0, z=1.0},
 					{x=3.0, y=1.0, z=3.0},
@@ -621,7 +621,7 @@ local function spawn_chaotic_shape(pos, radius, size, glow, eligible_players, co
 				maxvel = { x=8, y=10, z=8},
 				attract = {
 					kind = 'point',
-					strength = { min = -12.0, max = -18.5 },
+					strength = { min = -12.0, max = -16.5 },
 					origin = sub_pos,
 					direction = vector.new(0,-1,0),
 				},
