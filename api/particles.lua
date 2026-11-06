@@ -322,6 +322,20 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 
 	local eligible_players, old_client = get_eligible_players()
 
+	-- Burst and chaotic already spawn through core.add_particlespawner, which
+	-- older clients can render, so treat every player as eligible for those
+	-- two shapes instead of leaving them out of the shape spawner.
+	local shape_players = eligible_players
+	if shape == "burst" or shape == "chaotic" then
+		shape_players = {}
+		for _, player_name in ipairs(eligible_players) do
+			shape_players[#shape_players + 1] = player_name
+		end
+		for _, player_name in ipairs(old_client) do
+			shape_players[#shape_players + 1] = player_name
+		end
+	end
+
 	local spawn_colored_particle_wrapper = function(velocity, opts)
 		return spawn_colored_particle(pos, color_def, color_def_2, nil, alpha, texture, size, glow, eligible_players, velocity, opts)
 	end
@@ -364,7 +378,7 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 		shape_spawner = fireworks_reimagined.shape_functions.sphere
 	end
 	if shape_spawner then
-		shape_spawner(pos, radius, size, glow, eligible_players, color_def, color_def_2, nil, alpha, texture, spawn_colored_particle_wrapper)
+		shape_spawner(pos, radius, size, glow, shape_players, color_def, color_def_2, nil, alpha, texture, spawn_colored_particle_wrapper)
 	end
 
 	local base_props = {
@@ -391,21 +405,24 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 		blend = "add",
 	}
 
-	local variations = get_particle_variations(color_def, color_def_2, alpha)
-	for _, player_name in ipairs(old_client) do
-		for _, key in ipairs({"spark_props", "break_props1", "break_props"}) do
-			local props = table.copy(base_props)
-			for k,v in pairs(variations[key]) do
-				props[k] = v
-			end
-			props.playername = player_name
 
-			if key == "spark_props" then
-				core.add_particlespawner(props)
-			else
-				core.after(0.25, function()
+	if shape ~= "burst" and shape ~= "chaotic" then
+		local variations = get_particle_variations(color_def, color_def_2, alpha)
+		for _, player_name in ipairs(old_client) do
+			for _, key in ipairs({"spark_props", "break_props1", "break_props"}) do
+				local props = table.copy(base_props)
+				for k,v in pairs(variations[key]) do
+					props[k] = v
+				end
+				props.playername = player_name
+
+				if key == "spark_props" then
 					core.add_particlespawner(props)
-				end)
+				else
+					core.after(0.25, function()
+						core.add_particlespawner(props)
+					end)
+				end
 			end
 		end
 	end
