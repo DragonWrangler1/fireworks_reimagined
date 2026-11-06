@@ -382,19 +382,19 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 	end
 
 	local base_props = {
-		amount = 600,
-		time = 0.01,
+		amount = 400,
+		time = 0.005,
 		pos = pos,
-		radius = { min = 2, max = 3, bias = -10000 },
+		radius = { min = 1, max = 3, bias = -10000 },
 		drag_tween = {
 			{x=1.0, y=1.0, z=1.0},
 			{x=3.0, y=1.0, z=3.0},
 		},
-		minvel = { x= -4 , y=5, z= -4},
-		maxvel = { x=4, y=5, z=4},
+		minvel = { x= -8 , y=10, z= -8},
+		maxvel = { x=8, y=10, z=8},
 		attract = {
 			kind = 'point',
-			strength = { min = -11.0, max = -14.5 },
+			strength = { min = -11.0, max = math.random(-35.5, -10.5) },
 			origin = pos,
 			direction = vector.new(0,-1,0),
 		},
@@ -409,7 +409,7 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 	if shape ~= "burst" and shape ~= "chaotic" then
 		local variations = get_particle_variations(color_def, color_def_2, alpha)
 		for _, player_name in ipairs(old_client) do
-			for _, key in ipairs({"spark_props", "break_props1", "break_props"}) do
+			for _, key in ipairs({"spark_props", "break_props1"}) do
 				local props = table.copy(base_props)
 				for k,v in pairs(variations[key]) do
 					props[k] = v
@@ -419,7 +419,7 @@ function fireworks_reimagined.spawn_firework_explosion(pos, shape, double, color
 				if key == "spark_props" then
 					core.add_particlespawner(props)
 				else
-					core.after(0.25, function()
+					core.after(0.05, function()
 						core.add_particlespawner(props)
 					end)
 				end

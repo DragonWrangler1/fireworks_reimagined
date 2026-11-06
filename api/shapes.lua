@@ -540,10 +540,10 @@ end
 
 local function spawn_burst_shape(pos, radius, size, glow, eligible_players, color_def, color_def_2, explosion_colors, alpha, texture, spawn_colored_particle_func)
 	local base_props = {
-		amount = 600,
-		time = 0.01,
+		amount = 400,
+		time = 0.005,
 		pos = pos,
-		radius = { min = 2, max = 3, bias = -10000 },
+		radius = { min = 1, max = 3, bias = -10000 },
 		drag_tween = {
 			{x=1.0, y=1.0, z=1.0},
 			{x=3.0, y=1.0, z=3.0},
@@ -552,7 +552,7 @@ local function spawn_burst_shape(pos, radius, size, glow, eligible_players, colo
 		maxvel = { x=8, y=10, z=8},
 		attract = {
 			kind = 'point',
-			strength = { min = -11.0, max = math.random(-30.5, -10.5) },
+			strength = { min = -11.0, max = math.random(-35.5, -10.5) },
 			origin = pos,
 			direction = vector.new(0,-1,0),
 		},
@@ -565,7 +565,7 @@ local function spawn_burst_shape(pos, radius, size, glow, eligible_players, colo
 
 	local variations = fireworks_reimagined.get_particle_variations(color_def, color_def_2, alpha)
 
-	for _, key in ipairs({"spark_props", "break_props1", "break_props"}) do
+	for _, key in ipairs({"spark_props", "break_props1"}) do
 		local props = table.copy(base_props)
 		for k,v in pairs(variations[key]) do
 			props[k] = v
@@ -589,7 +589,7 @@ end
 
 local function spawn_chaotic_shape(pos, radius, size, glow, eligible_players, color_def, color_def_2, explosion_colors, alpha, texture, spawn_colored_particle_func)
 	local variations = fireworks_reimagined.get_particle_variations(color_def, color_def_2, alpha)
-	local sub_explosions = math.random(9, 14)
+	local sub_explosions = math.random(6, 10)
 	
 	core.sound_play("fireworks_explosion_multi", {
 		pos = pos,
@@ -609,7 +609,7 @@ local function spawn_chaotic_shape(pos, radius, size, glow, eligible_players, co
 		
 		core.after(delay, function()
 			local base_sub_props = {
-				amount = 60,
+				amount = 80,
 				time = 0.01,
 				pos = sub_pos,
 				radius = { min = 1, max = 2, bias = -10000 },
@@ -656,7 +656,6 @@ local function spawn_chaotic_shape(pos, radius, size, glow, eligible_players, co
 			end
 		end)
 	end
-end
 end
 
 local function spawn_flame_shape(pos, radius, size, glow, eligible_players, color_def, color_def_2, explosion_colors, alpha, texture, spawn_colored_particle_func)
