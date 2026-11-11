@@ -822,7 +822,7 @@ function fireworks_reimagined.register_firework_entity(name, def)
 			fireworks    = true,
 			textures = {"fireworks_rocket_white.png"},
 			glow = 10,
-			collisionbox = {-0.25,-0.25,-0.25,0.25,0.25,0.25},
+			collisionbox = {-0.2,-0.2,-0.2,0.2,0.2,0.2},
 			physical     = true,
 			collide_with_objects = false,
 			velocity = 0,
