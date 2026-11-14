@@ -209,39 +209,48 @@ local function legacy_node_name(color_name)
 	return "fireworks_reimagined:firework_" .. color_name .. "_" .. legacy_shape
 end
 
-local function legacy_alias_target_shape()
-	if alias_disabled_shapes then
-		return legacy_shape
+local function register_firework_alias(alias_name, color_name, shape_name)
+	local target_shape
+	
+	if shape_name then
+		target_shape = shape_name
+		if not fireworks_reimagined.is_shape_enabled(shape_name) then
+			target_shape = legacy_shape
+			if not target_shape then
+				return
+			end
+		end
+	else
+		if alias_disabled_shapes then
+			target_shape = legacy_shape
+		elseif fireworks_reimagined.is_shape_enabled("burst") then
+			target_shape = "burst"
+		else
+			return
+		end
 	end
-	-- Legacy names historically meant "burst". If burst is disabled, leave them
-	-- unregistered instead of silently choosing another shape.
-	if fireworks_reimagined.is_shape_enabled("burst") then
-		return "burst"
-	end
-	return nil
-end
-
-local function register_legacy_alias(alias_name, color_name)
-	local target_shape = legacy_alias_target_shape()
-	if not target_shape then
-		return
-	end
+	
 	core.register_alias(alias_name, "fireworks_reimagined:firework_" .. color_name .. "_" .. target_shape)
 end
 
-register_legacy_alias("fireworks_redo:spawner_red", "red")
-register_legacy_alias("fireworks_redo:spawner_yellow", "yellow")
-register_legacy_alias("fireworks_redo:spawner_blue", "blue")
-register_legacy_alias("fireworks_redo:spawner_white", "white")
-register_legacy_alias("fireworks_redo:spawner_orange", "orange")
-register_legacy_alias("fireworks_redo:spawner_green", "green")
-register_legacy_alias("fireworks_redo:spawner_purple", "violet")
-register_legacy_alias("fireworks_redo:spawner_cyan", "cyan")
+register_firework_alias("fireworks_redo:spawner_red", "red")
+register_firework_alias("fireworks_redo:spawner_yellow", "yellow")
+register_firework_alias("fireworks_redo:spawner_blue", "blue")
+register_firework_alias("fireworks_redo:spawner_white", "white")
+register_firework_alias("fireworks_redo:spawner_orange", "orange")
+register_firework_alias("fireworks_redo:spawner_green", "green")
+register_firework_alias("fireworks_redo:spawner_purple", "violet")
+register_firework_alias("fireworks_redo:spawner_cyan", "cyan")
 
-register_legacy_alias("fireworks:red", "red")
-register_legacy_alias("fireworks:orange", "orange")
-register_legacy_alias("fireworks:green", "green")
-register_legacy_alias("fireworks:violet", "violet")
+register_firework_alias("fireworks:red", "red")
+register_firework_alias("fireworks:orange", "orange")
+register_firework_alias("fireworks:green", "green")
+register_firework_alias("fireworks:violet", "violet")
+
+register_firework_alias("fireworks_redo:spawner_red_spiral", "red", "spiral")
+register_firework_alias("fireworks_redo:spawner_yellow_spiral", "yellow", "spiral")
+register_firework_alias("fireworks_redo:spawner_blue_spiral", "blue", "spiral")
+register_firework_alias("fireworks_redo:spawner_white_spiral", "white", "spiral")
 
 for _, shape_name in ipairs(shapes) do
 	core.register_alias("fireworks_reimagined:firework_" .. shape_name, "fireworks_reimagined:firework_white_" .. shape_name)
@@ -269,15 +278,15 @@ end
 
 local non_existent_shapes = {"cube", "present", "christmas_tree"}
 for _, shape_name in ipairs(non_existent_shapes) do
-	register_legacy_alias("fireworks_reimagined:firework_" .. shape_name, "white")
+	register_firework_alias("fireworks_reimagined:firework_" .. shape_name, "white")
 
 	for _, color_def in ipairs(palette) do
 		local color_name = color_def.name:lower()
-		register_legacy_alias("fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name, color_name)
+		register_firework_alias("fireworks_reimagined:firework_" .. color_name .. "_" .. shape_name, color_name)
 	end
 end
 
 for _, color_def in ipairs(palette) do
 	local color_name = color_def.name:lower()
-	register_legacy_alias("fireworks_reimagined:firework_" .. color_name, color_name)
+	register_firework_alias("fireworks_reimagined:firework_" .. color_name, color_name)
 end

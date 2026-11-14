@@ -533,8 +533,35 @@ function fireworks_reimagined.register_firework_node(tiles, node_name, shape, en
 
 			local c1_raw = meta:get_string("c1")
 			local c2_raw = meta:get_string("c2")
-			local c1 = is_valid_hex(c1_raw) and c1_raw or "#FFFFFF"
-			local c2 = is_valid_hex(c2_raw) and c2_raw or c1
+			
+			if not is_valid_hex(c1_raw) then
+				local current_node = core.get_node(pos)
+				local current_node_name = current_node.name
+				local pal = fireworks_reimagined.color_palette or color_palette or {}
+				
+				for _, color_def in ipairs(pal) do
+					local color_lower = color_def.name:lower()
+					if current_node_name:find("_" .. color_lower .. "_") then
+						c1_raw = color_def.hex
+						break
+					end
+				end
+				
+				if not is_valid_hex(c1_raw) then
+					c1_raw = "#FFFFFF"
+				end
+				meta:set_string("c1", c1_raw)
+			end
+			
+			if not is_valid_hex(c2_raw) then
+				local current_node = core.get_node(pos)
+				local c2_idx = (current_node.param2 % 16) + 1
+				c2_raw = get_color_by_index(c2_idx)
+				meta:set_string("c2", c2_raw)
+			end
+			
+			local c1 = c1_raw
+			local c2 = c2_raw
 
 			-- Only claim an unowned node after authorization has succeeded.
 			if owner == "" then
@@ -822,7 +849,7 @@ function fireworks_reimagined.register_firework_entity(name, def)
 			fireworks    = true,
 			textures = {"fireworks_rocket_white.png"},
 			glow = 10,
-			collisionbox = {-0.2,-0.2,-0.2,0.2,0.2,0.2},
+			collisionbox = {-0.2,-0.2,-0.2,0.2,0.2,0.2},			
 			physical     = true,
 			collide_with_objects = false,
 			velocity = 0,
